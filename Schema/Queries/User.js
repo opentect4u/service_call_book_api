@@ -1,29 +1,17 @@
-const { GraphQLList, printError } = require('graphql')
+const { GraphQLList, printError, GraphQLString } = require('graphql')
 const { UserType } = require('../TypeDefs/User')
 const db = require('../db');
+const { UserLogin } = require('../Modules/user_module');
+const { MessageType } = require('../TypeDefs/Messages');
 
-const get_all_users = {
-    type: new GraphQLList(UserType),
-    resolve() {
-        let sql = `SELECT * FROM md_users`;
-        return new Promise((reso, reject) => {
-            db.query(sql, (err, result) => {
-                var error = '';
-                if (err) {
-                    error = err; throw Error(err); console.log({ msg: err });
-                } else {
-                    error = { message: 'No Data Found', status: 0 };
-                }
-                // console.log(result.length);
-                if (result.length > 0) {
-                    reso(result);
-                } else {
-                    return printError(error);
-                }
-            });
-        })
-        // return "Subham Samanta";
+const user_login = {
+    type: MessageType,
+    args: { user_id: { type: GraphQLString }, password: { type: GraphQLString } },
+    async resolve(parent, args) {
+        const status = await UserLogin(args);
+        // console.log(status);
+        return status;
     }
 }
 
-module.exports = { get_all_users };
+module.exports = { user_login };
