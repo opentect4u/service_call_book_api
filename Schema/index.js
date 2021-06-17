@@ -1,5 +1,5 @@
 const { GraphQLSchema, GraphQLObjectType } = require("graphql");
-const { user_login } = require('./Queries/User');
+const { user_login, check_user } = require('./Queries/User');
 const { create_user, delete_user, update_user } = require('./Mutations/User');
 
 // console.log(USER.get_all_users);
@@ -7,7 +7,8 @@ const { create_user, delete_user, update_user } = require('./Mutations/User');
 const UserLogin = new GraphQLObjectType({
     name: 'UserLogin',
     fields: {
-        userLogin: user_login
+        userLogin: user_login,
+        checkUser: check_user
     }
 })
 
