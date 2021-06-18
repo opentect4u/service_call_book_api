@@ -3,9 +3,137 @@ const db = require('../db');
 let data = {};
 let datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
 
-const InsertClientType = (args) => {
-    const { client_type, user_id } = args;
-    let sql = `INSERT INTO md_client_type (client_type, created_by, created_dt) VALUES ("${client_type}", "${user_id}", "${datetime}")`;
+const GetMasterData = (args) => {
+    const { db_type } = args;
+    var db_name = '';
+    switch (db_type) {
+        case 1:
+            db_name = 'md_client_type';
+            field = 'client_type';
+            return GetData(args, db_name, field);
+        // break;
+        case 2:
+            db_name = 'md_oprn_mode';
+            field = 'oprn_mode';
+            return GetData(args, db_name, field);
+        // break;
+        case 3:
+            db_name = 'md_tkt_status';
+            field = 'tkt_status';
+            return GetData(args, db_name, field);
+        // break;
+        case 4:
+            db_name = 'md_priority_mode';
+            field = 'priority_mode';
+            return GetData(args, db_name, field);
+        // break;
+        case 5:
+            db_name = 'md_module';
+            field = 'module_type';
+            return GetData(args, db_name, field);
+        // break;
+        default:
+            console.log("ERROR BY DEFAULT CASE");
+            break;
+    }
+}
+
+const MasterInsertData = (args) => {
+    const { db_type } = args;
+    var db_name = '';
+    var field = '';
+    switch (db_type) {
+        case 1:
+            db_name = 'md_client_type';
+            field = 'client_type';
+            return InsertData(args, db_name, field);
+        // break;
+        case 2:
+            db_name = 'md_oprn_mode';
+            field = 'oprn_mode';
+            return InsertData(args, db_name, field);
+        // break;
+        case 3:
+            db_name = 'md_tkt_status';
+            field = 'tkt_status';
+            return InsertData(args, db_name, field);
+        // break;
+        case 4:
+            db_name = 'md_priority_mode';
+            field = 'priority_mode';
+            return InsertData(args, db_name, field);
+        // break;
+        case 5:
+            db_name = 'md_module';
+            field = 'module_type';
+            return InsertData(args, db_name, field);
+        // break;
+        default:
+            console.log("ERROR BY DEFAULT CASE");
+            break;
+    }
+}
+
+const MasterUpdateData = (args) => {
+    const { db_type } = args;
+    var db_name = '';
+    var field = '';
+    switch (db_type) {
+        case 1:
+            db_name = 'md_client_type';
+            field = 'client_type';
+            return UpdateData(args, db_name, field);
+        // break;
+        case 2:
+            db_name = 'md_oprn_mode';
+            field = 'oprn_mode';
+            return UpdateData(args, db_name, field);
+        // break;
+        case 3:
+            db_name = 'md_tkt_status';
+            field = 'tkt_status';
+            return UpdateData(args, db_name, field);
+        // break;
+        case 4:
+            db_name = 'md_priority_mode';
+            field = 'priority_mode';
+            return UpdateData(args, db_name, field);
+        // break;
+        case 5:
+            db_name = 'md_module';
+            field = 'module_type';
+            return UpdateData(args, db_name, field);
+        // break;
+        default:
+            console.log("ERROR BY DEFAULT CASE");
+            break;
+    }
+}
+
+const GetData = (args, db_name, field) => {
+    const { id } = args;
+    var check = id != '' && id > 0 ? `WHERE id = ${id}` : '';
+    let sql = `SELECT id, ${field} as name FROM ${db_name} ${check}`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            }
+            // console.log(result);
+            if (result.length > 0) {
+                // data = { success: 1, message: JSON.stringify(result) };
+                data = result;
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+const InsertData = (args, db_name, field) => {
+    const { name, user_id } = args;
+    let sql = `INSERT INTO ${db_name} (${field}, created_by, created_dt) VALUES ("${name}", "${user_id}", "${datetime}")`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, insertId) => {
             if (err) {
@@ -19,4 +147,20 @@ const InsertClientType = (args) => {
     })
 }
 
-module.exports = { InsertClientType };
+const UpdateData = (args, db_name, field) => {
+    const { id, name, user_id } = args;
+    let sql = `UPDATE ${db_name} SET ${field} = "${name}", modified_by = "${user_id}", modified_dt = "${datetime}" WHERE id = ${id}`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, insertId) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: 'Updated Successfully !!' };
+            }
+            resolve(data);
+        })
+    })
+}
+
+module.exports = { GetMasterData, MasterInsertData, MasterUpdateData };

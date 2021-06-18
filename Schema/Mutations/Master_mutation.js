@@ -1,18 +1,32 @@
-const { GraphQLString, GraphQLID, GraphQLInt } = require("graphql");
-const { buildResolveInfo } = require("graphql/execution/execute");
-const { InsertClientType } = require("../Modules/master_module");
+const { GraphQLString, GraphQLID, GraphQLInt, GraphQLFloat } = require("graphql");
+const { MasterInsertData, MasterUpdateData } = require("../Modules/master_module");
 const { MessageType } = require("../TypeDefs/Messages");
 
-const create_client_type = {
+const create_master_data = {
     type: MessageType,
     args: {
-        client_type: { type: GraphQLString },
-        user_id: { type: GraphQLString }
+        name: { type: GraphQLString },
+        user_id: { type: GraphQLString },
+        db_type: { type: GraphQLInt }
     },
     async resolve(parent, args) {
-        var status = await InsertClientType(args);
+        var status = await MasterInsertData(args);
         return status;
     }
 }
 
-module.exports = { create_client_type };
+const update_master_data = {
+    type: MessageType,
+    args: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+        user_id: { type: GraphQLString },
+        db_type: {type: GraphQLInt}
+    },
+    async resolve(parent, args) {
+        var status = await MasterUpdateData(args);
+        return status;
+    }
+}
+
+module.exports = { create_master_data, update_master_data };

@@ -1,11 +1,28 @@
 const db = require('../db');
 const dateFormat = require('dateformat');
 let data = {};
+var datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
+
+const GetEmpData = (args) => {
+    const { id } = args;
+    let check = id != '' && id > 0 ? `WHERE id = ${id}` : '';
+    let sql = `SELECT * FROM md_employee ${check}`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
 
 const input_emp = (args) => {
     const { emp_code, emp_name, phone_no, email, emp_designation, remarks, code_no } = args;
-    var datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
-    let sql = `INSERT INTO md_employee(emp_code, emp_name, phone_no, email, emp_designation, remarks, created_by, created_dt) VALUES ("${emp_code}", "${emp_name}", "${phone_no}", "${email}", "${emp_designation}", "${remarks}", "${code_no}", "${datetime}")`;
+    let sql = `INSERT INTO md_employee (emp_code, emp_name, phone_no, email, emp_designation, remarks, created_by, created_dt) VALUES ("${emp_code}", "${emp_name}", "${phone_no}", "${email}", "${emp_designation}", "${remarks}", "${code_no}", "${datetime}")`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, lastId) => {
             if (err) { data = { success: 0, message: 'Data Not Inserted' }; console.log({ msg: err }); }
@@ -37,4 +54,20 @@ const empSave = (args) => {
     })
 }
 
-module.exports = { empSave };
+const emp_update = (args) => {
+    const { emp_code, emp_name, phone_no, email, emp_designation, remarks, id, user_id } = args;
+    let sql = `UPDATE md_employee SET emp_name = "${emp_name}", phone_no = "${phone_no}", email = "${email}", emp_designation = "${emp_designation}", remarks = "${remarks}", modified_by = "${user_id}", modified_dt = "${datetime}" WHERE id = ${id}`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, insertId) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: 'Updated Successfully !!' };
+            }
+            resolve(data);
+        })
+    })
+}
+
+module.exports = { empSave, GetEmpData, emp_update };

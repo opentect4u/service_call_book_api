@@ -1,38 +1,11 @@
-const { GraphQLObjectType, GraphQLString } = require("graphql");
+const { GraphQLObjectType, GraphQLString, GraphQLID } = require("graphql");
 
-const mdClientTypeDf = new GraphQLObjectType({
-    name: 'md_client_type',
+const masterTypeDf = new GraphQLObjectType({
+    name: 'masterData',
     fields: () => ({
-        client_type: { type: GraphQLString }
+        id: { type: GraphQLID },
+        name: { type: GraphQLString }
     })
 })
 
-const mdOprnModeType = new GraphQLObjectType({
-    name: 'md_oprn_mode',
-    fields: () => ({
-        oprn_mode: { type: GraphQLString }
-    })
-})
-
-const mdTktStatusType = new GraphQLObjectType({
-    name: 'md_tkt_status',
-    fields: () => ({
-        tkt_status: { type: GraphQLString }
-    })
-})
-
-const mdPriorityModeType = new GraphQLObjectType({
-    name: 'md_priority_mode',
-    fields: () => ({
-        priority_mode: { type: GraphQLString }
-    })
-})
-
-const mdModuleType = new GraphQLObjectType({
-    name: 'md_module',
-    fields: () => ({
-        module_type: { type: GraphQLString }
-    })
-})
-
-module.exports = { mdClientTypeDf, mdOprnModeType, mdTktStatusType, mdPriorityModeType, mdModuleType };
+module.exports = { masterTypeDf };
