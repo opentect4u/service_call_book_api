@@ -9,28 +9,33 @@ const GetMasterData = (args) => {
     switch (db_type) {
         case 1:
             db_name = 'md_client_type';
+            id_name = 'client_id';
             field = 'client_type';
-            return GetData(args, db_name, field);
+            return GetData(args, db_name, field, id_name);
         // break;
         case 2:
             db_name = 'md_oprn_mode';
+            id_name = 'oprn_id';
             field = 'oprn_mode';
-            return GetData(args, db_name, field);
+            return GetData(args, db_name, field, id_name);
         // break;
         case 3:
             db_name = 'md_tkt_status';
+            id_name = 'tkt_id';
             field = 'tkt_status';
-            return GetData(args, db_name, field);
+            return GetData(args, db_name, field, id_name);
         // break;
         case 4:
             db_name = 'md_priority_mode';
+            id_name = 'priority_id';
             field = 'priority_mode';
-            return GetData(args, db_name, field);
+            return GetData(args, db_name, field, id_name);
         // break;
         case 5:
             db_name = 'md_module';
+            id_name = 'module_id';
             field = 'module_type';
-            return GetData(args, db_name, field);
+            return GetData(args, db_name, field, id_name);
         // break;
         default:
             console.log("ERROR BY DEFAULT CASE");
@@ -110,10 +115,41 @@ const MasterUpdateData = (args) => {
     }
 }
 
-const GetData = (args, db_name, field) => {
+const MasterDeleteData = (args) => {
+    const { db_type } = args;
+    var db_name = '';
+    var field = '';
+    switch (db_type) {
+        case 1:
+            db_name = 'md_client_type';
+            return DeleteData(args, db_name);
+        // break;
+        case 2:
+            db_name = 'md_oprn_mode';
+            return DeleteData(args, db_name);
+        // break;
+        case 3:
+            db_name = 'md_tkt_status';
+            return DeleteData(args, db_name);
+        // break;
+        case 4:
+            db_name = 'md_priority_mode';
+            return DeleteData(args, db_name);
+        // break;
+        case 5:
+            db_name = 'md_module';
+            return DeleteData(args, db_name);
+        // break;
+        default:
+            console.log("ERROR BY DEFAULT CASE");
+            break;
+    }
+}
+
+const GetData = (args, db_name, field, id_name) => {
     const { id } = args;
     var check = id != '' && id > 0 ? `WHERE id = ${id}` : '';
-    let sql = `SELECT id, ${field} as name FROM ${db_name} ${check}`;
+    let sql = `SELECT id as ${id_name}, ${field} FROM ${db_name} ${check}`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
             if (err) {
@@ -163,4 +199,20 @@ const UpdateData = (args, db_name, field) => {
     })
 }
 
-module.exports = { GetMasterData, MasterInsertData, MasterUpdateData };
+const DeleteData = (args, db_name) => {
+    const { id } = args;
+    let sql = `DELETE FROM ${db_name} WHERE id = ${id}`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, insertId) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: 'Delete Successfully !!' };
+            }
+            resolve(data);
+        })
+    })
+}
+
+module.exports = { GetMasterData, MasterInsertData, MasterUpdateData, MasterDeleteData };

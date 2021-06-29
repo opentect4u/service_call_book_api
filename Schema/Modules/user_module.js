@@ -71,12 +71,18 @@ const UserLogin = (args) => {
 
 const CheckUser = (args) => {
     const { code_no } = args;
-    let sql = `SELECT emp_name as name, email, phone_no FROM md_employee WHERE emp_code = ${code_no}`;
+    //let sql = `SELECT emp_name as name, email, phone_no FROM md_employee WHERE emp_code = ${code_no}`;
+	let sql = `SELECT a.emp_name as name, a.email, a.phone_no, IF(b.id>0, b.id, 0) as log_done FROM md_employee a LEFT JOIN md_users b ON a.emp_code=b.code_no WHERE a.emp_code = "${code_no}"`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
             if (err) { console.log({ msg: err }); data = { success: 0, message: JSON.stringify(err) }; }
             if (result.length > 0) {
-                data = { success: 1, message: JSON.stringify(result) };
+				if(result[0].log_done > 0){
+					data = { success: 2, message: JSON.stringify(result) };
+				}else{
+					data = { success: 1, message: JSON.stringify(result) };
+				}
+                
             } else {
                 data = { success: 0, message: 'No Data Found.. Please Contact With Admin' };
             }

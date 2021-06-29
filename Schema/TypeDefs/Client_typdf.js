@@ -18,7 +18,9 @@ const ClientTypeDf = new GraphQLObjectType({
         amc_upto: { type: GraphQLString },
         rental_upto: { type: GraphQLString },
         support_status: { type: GraphQLString },
-        remarks: { type: GraphQLString }
+        remarks: { type: GraphQLString },
+		client_type: { type: GraphQLString },
+		district_name: { type: GraphQLString }
     })
 })
 

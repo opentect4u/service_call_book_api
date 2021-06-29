@@ -5,10 +5,10 @@ var datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
 
 const GetClient = (args) => {
     const { id, active } = args;
-    var check = id != '' && id > 0 ? `WHERE a.id = "${id}"` : '';
+    var check = id != '' && id > 0 ? `WHERE id = "${id}"` : '';
     var whr = id != '' && id > 0 ? 'AND' : 'WHERE';
-    var active_chk = active > 0 ? `${whr} a.support_status = "A"` : (active != '' || active == '0' ? `${whr} a.support_status = "D"` : '');
-    var sql = `SELECT a.*, b.client_type, c.district_name FROM md_client a JOIN md_client_type b ON a.client_type_id=b.id JOIN md_district c ON a.district_id=c.id ${check} ${active_chk}`;
+    var active_chk = active > 0 ? `${whr} support_status = "A"` : (active != '' || active == '0' ? `${whr} support_status = "D"` : '');
+    var sql = `SELECT * FROM md_client ${check} ${active_chk}`;
     // console.log(sql);
     // console.log({ active, check, whr, sql });
     return new Promise((resolve, reject) => {
@@ -27,10 +27,8 @@ const GetClient = (args) => {
 
 const save_client = (args) => {
     const { client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, remarks, user_id } = args;
-	let rental_upto_val = rental_upto != '' ? rental_upto : null;
-	let amc_upto_val = amc_upto != '' ? amc_upto : null;
     let sql = `INSERT INTO md_client (client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, remarks, created_by, created_dt) 
-    VALUES ("${client_name}", "${district_id}", "${client_type_id}", "${oprn_mode_id}", "${client_addr}", "${tech_person}", "${tech_designation}", "${phone_no}", "${email}", "${working_hrs}", "${support_mode}", ${amc_upto_val}, ${rental_upto_val}, "${support_status}", "${remarks}", "${user_id}", "${datetime}")`;
+    VALUES ("${client_name}", "${district_id}", "${client_type_id}", "${oprn_mode_id}", "${client_addr}", "${tech_person}", "${tech_designation}", "${phone_no}", "${email}", "${working_hrs}", "${support_mode}", "${amc_upto}", "${rental_upto}", "${support_status}", "${remarks}", "${user_id}", "${datetime}")`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, InsertId) => {
             if (err) {
@@ -65,9 +63,7 @@ const CheckClient = (args) => {
 
 const UpdateClient = (args) => {
     const { id, client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, remarks, user_id } = args;
-	let rental_upto_val = rental_upto != '' ? `rental_upto = ${rental_upto},` : '';
-	let amc_upto_val = amc_upto != '' ? `amc_upto = ${amc_upto}, ` : '';
-    let sql = `UPDATE md_client SET client_name = "${client_name}", district_id = "${district_id}", client_type_id = "${client_type_id}", oprn_mode_id = "${oprn_mode_id}", client_addr = "${client_addr}", tech_person = "${tech_person}", tech_designation = "${tech_designation}", phone_no = "${phone_no}", email = "${email}", working_hrs = "${working_hrs}", support_mode = "${support_mode}", ${amc_upto_val} ${rental_upto_val} support_status = "${support_status}", remarks = "${remarks}", created_by = "${user_id}", created_dt = "${datetime}" WHERE id = ${id}`;
+    let sql = `UPDATE md_client SET client_name = "${client_name}", district_id = "${district_id}", client_type_id = "${client_type_id}", oprn_mode_id = "${oprn_mode_id}", client_addr = "${client_addr}", tech_person = "${tech_person}", tech_designation = "${tech_designation}", phone_no = "${phone_no}", email = "${email}", working_hrs = "${working_hrs}", support_mode = "${support_mode}", amc_upto = "${amc_upto}", rental_upto = "${rental_upto}", support_status = "${support_status}", remarks = "${remarks}", created_by = "${user_id}", created_dt = "${datetime}" WHERE id = ${id}`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, InsertId) => {
             if (err) {

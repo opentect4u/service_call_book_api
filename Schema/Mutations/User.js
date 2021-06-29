@@ -9,7 +9,7 @@ const { MessageType } = require('../TypeDefs/Messages');
 const create_user = {
     type: MessageType,
     args: {
-        code_no: { type: GraphQLInt },
+        code_no: { type: GraphQLString },
         user_type: { type: GraphQLString },
         user_id: { type: GraphQLString },
         password: { type: GraphQLString }
