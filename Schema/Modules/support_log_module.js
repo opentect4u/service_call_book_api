@@ -22,7 +22,7 @@ const SupLogGet = (args) => {
     const { id } = args;
     var where = id != '' && id > 0 ? `WHERE a.id = ${id}` : '';
     var sql = `SELECT a.*, b.client_name, c.district_name, d.client_type, e.oprn_mode, b.working_hrs, b.amc_upto, b.rental_upto, 
-    f.priority_mode priority, g.module_type module, h.emp_name
+    f.priority_mode priority, g.module_type module, h.emp_name, i.tkt_status as tktStatus
     FROM td_support_log a
     JOIN md_client b ON a.client_id=b.id
     JOIN md_district c ON b.district_id=c.id
@@ -30,7 +30,8 @@ const SupLogGet = (args) => {
     JOIN md_oprn_mode e ON b.oprn_mode_id=e.id
     JOIN md_priority_mode f ON a.priority_status=f.id
     JOIN md_module g ON a.tkt_module=g.id
-    LEFT JOIN md_employee h ON a.assign_engg=h.id ${where}`;
+    LEFT JOIN md_employee h ON a.assign_engg=h.id
+	LEFT JOIN md_tkt_status i ON a.tkt_status=i.id ${where}`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
             // console.log(result);
@@ -61,6 +62,22 @@ const SupLogEntry = async (args) => {
                 data = { success: 0, message: JSON.stringify(err) };
             } else {
                 data = { success: 1, message: 'Insert Successfully !!' };
+            }
+            resolve(data);
+        })
+    })
+}
+
+const UpdateRaiseTkt = (args) => {
+    const { id, tkt_module, phone_no, priority_status, prob_reported, remarks, user_id } = args;
+    var sql = `UPDATE td_support_log SET tkt_module="${tkt_module}", phone_no="${phone_no}", priority_status="${priority_status}", prob_reported="${prob_reported}", remarks="${remarks}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, insertId) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: 'Updated Successfully !!' };
             }
             resolve(data);
         })
@@ -99,4 +116,4 @@ const UpdateDeliverTkt = (args) => {
     })
 }
 
-module.exports = { SupLogEntry, SupLogGet, UpdateAssignTkt, UpdateDeliverTkt };
+module.exports = { SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt };

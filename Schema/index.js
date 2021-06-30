@@ -1,13 +1,13 @@
 const { GraphQLSchema, GraphQLObjectType } = require("graphql");
 const { user_login, check_user } = require('./Queries/User');
 const { create_user, delete_user, update_user } = require('./Mutations/User');
-const { create_emp, update_emp } = require("./Mutations/Emp_master_mutation");
+const { create_emp, update_emp, delete_emp } = require("./Mutations/Emp_master_mutation");
 const { create_master_data, update_master_data, delete_master_data } = require("./Mutations/Master_mutation");
 const { get_master_data, get_client_type_data, get_tkt_status_data, get_oprn_mode_data, get_priotity_mode_data, get_module_type_data } = require("./Queries/Master_query");
 const { get_emp } = require("./Queries/Emp_master_query");
 const { get_client, get_district } = require("./Queries/Client_query");
-const { create_client, update_client } = require("./Mutations/Client_mutation");
-const { create_tkt, update_assign_tkt, update_deliver_tkt } = require("./Mutations/Support_log_mutation");
+const { create_client, update_client, delete_client } = require("./Mutations/Client_mutation");
+const { create_tkt, update_assign_tkt, update_deliver_tkt, update_raise_tkt } = require("./Mutations/Support_log_mutation");
 const { get_supp_log } = require("./Queries/Support_log_query");
 
 // console.log(USER.get_all_users);
@@ -43,7 +43,10 @@ const UserMutation = new GraphQLObjectType({
         insertClient: create_client,
         updateClient: update_client,
         deleteMaster: delete_master_data,
+        deleteClient: delete_client,
+        deleteEmp: delete_emp,
         createTkt: create_tkt,
+        updateRaiseTkt: update_raise_tkt,
         updateAssignTkt: update_assign_tkt,
         updateDeliverTkt: update_deliver_tkt
     }

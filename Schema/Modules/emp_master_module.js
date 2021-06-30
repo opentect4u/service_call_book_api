@@ -70,4 +70,20 @@ const emp_update = (args) => {
     })
 }
 
-module.exports = { empSave, GetEmpData, emp_update };
+const DeleteEmp = (args) => {
+    const { id } = args;
+    let sql = `DELETE FROM md_employee WHERE id = "${id}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: "Deleted Successfully !!" };
+            }
+            resolve(data);
+        })
+    })
+}
+
+module.exports = { empSave, GetEmpData, emp_update, DeleteEmp };

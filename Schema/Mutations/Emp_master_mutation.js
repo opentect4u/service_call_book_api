@@ -1,6 +1,6 @@
 const { GraphQLString, GraphQLInt } = require("graphql");
 const { MessageType } = require("../TypeDefs/Messages");
-const { empSave, emp_update } = require("../Modules/emp_master_module");
+const { empSave, emp_update, DeleteEmp } = require("../Modules/emp_master_module");
 
 const create_emp = {
     type: MessageType,
@@ -36,4 +36,13 @@ const update_emp = {
     }
 }
 
-module.exports = { create_emp, update_emp };
+const delete_emp = {
+    type: MessageType,
+    args: { id: { type: GraphQLString } },
+    async resolve(parent, args) {
+        var status = await DeleteEmp(args);
+        return (status);
+    }
+}
+
+module.exports = { create_emp, update_emp, delete_emp };

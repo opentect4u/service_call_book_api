@@ -1,5 +1,5 @@
 const { GraphQLString, GraphQLInt } = require("graphql");
-const { CheckClient, UpdateClient } = require("../Modules/client_module");
+const { CheckClient, UpdateClient, DeleteClient } = require("../Modules/client_module");
 const { MessageType } = require("../TypeDefs/Messages");
 
 const create_client = {
@@ -54,4 +54,13 @@ const update_client = {
     }
 }
 
-module.exports = { create_client, update_client };
+const delete_client = {
+    type: MessageType,
+    args: { id: { type: GraphQLString } },
+    async resolve(parent, args) {
+        var status = await DeleteClient(args);
+        return status;
+    }
+}
+
+module.exports = { create_client, update_client, delete_client };

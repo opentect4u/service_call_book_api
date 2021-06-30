@@ -26,7 +26,8 @@ const SupportLogTypDf = new GraphQLObjectType({
         rental_upto: { type: GraphQLString },
         priority: { type: GraphQLString },
         module: { type: GraphQLString },
-        emp_name: { type: GraphQLString }
+        emp_name: { type: GraphQLString },
+        tktStatus: { type: GraphQLString }
     })
 })
 
