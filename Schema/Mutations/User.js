@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const dateFormat = require('dateformat');
 const { UserType } = require("../TypeDefs/User");
 const db = require('../db');
-const { InsertUser } = require('../Modules/user_module');
+const { InsertUser, UpdateUserType, UpdateUserStatus, UpdateApprovalFlag } = require('../Modules/user_module');
 const { MessageType } = require('../TypeDefs/Messages');
 
 const create_user = {
@@ -18,6 +18,43 @@ const create_user = {
         var status = await InsertUser(args);
         return status;
 
+    }
+}
+
+const update_user_type = {
+    type: MessageType,
+    args: {
+        id: { type: GraphQLString },
+        user_type: { type: GraphQLString },
+        user_id: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await UpdateUserType(args);
+        return result;
+    }
+}
+
+const update_user_status = {
+    type: MessageType,
+    args: {
+        id: { type: GraphQLString },
+        user_status: { type: GraphQLString },
+        user_id: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await UpdateUserStatus(args);
+        return result;
+    }
+}
+
+const update_approve_status = {
+    type: MessageType,
+    args: {
+        email_id: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await UpdateApprovalFlag(args);
+        return result;
     }
 }
 
@@ -54,4 +91,4 @@ const delete_user = {
     }
 }
 
-module.exports = { create_user, delete_user, update_user };
+module.exports = { create_user, delete_user, update_user, update_user_type, update_user_status, update_approve_status };

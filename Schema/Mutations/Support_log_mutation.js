@@ -1,5 +1,5 @@
 const { GraphQLString } = require("graphql");
-const { SupLogEntry, UpdateAssignTkt, UpdateDeliverTkt, UpdateRaiseTkt } = require("../Modules/support_log_module");
+const { SupLogEntry, UpdateAssignTkt, UpdateDeliverTkt, UpdateRaiseTkt, DeleteTkt } = require("../Modules/support_log_module");
 const { MessageType } = require("../TypeDefs/Messages");
 
 
@@ -59,6 +59,7 @@ const update_deliver_tkt = {
         delivery: { type: GraphQLString },
         tkt_status: { type: GraphQLString },
         remarks: { type: GraphQLString },
+        work_status: { type: GraphQLString },
         user_id: { type: GraphQLString }
     },
     async resolve(parent, args) {
@@ -67,4 +68,15 @@ const update_deliver_tkt = {
     }
 }
 
-module.exports = { create_tkt, update_assign_tkt, update_deliver_tkt, update_raise_tkt };
+const delete_tkt = {
+    type: MessageType,
+    args: {
+        id: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await DeleteTkt(args);
+        return result;
+    }
+}
+
+module.exports = { create_tkt, update_assign_tkt, update_deliver_tkt, update_raise_tkt, delete_tkt };

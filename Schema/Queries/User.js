@@ -1,7 +1,7 @@
 const { GraphQLList, printError, GraphQLString } = require('graphql')
 const { UserType } = require('../TypeDefs/User')
 const db = require('../db');
-const { UserLogin, CheckUser } = require('../Modules/user_module');
+const { UserLogin, CheckUser, GetUserDetails } = require('../Modules/user_module');
 const { MessageType } = require('../TypeDefs/Messages');
 
 const user_login = {
@@ -24,4 +24,13 @@ const check_user = {
     }
 }
 
-module.exports = { user_login, check_user };
+const get_user_details = {
+    type: new GraphQLList(UserType),
+    args: { tag: { type: GraphQLString } },
+    async resolve(parent, args) {
+        const result = await GetUserDetails(args);
+        return result;
+    }
+}
+
+module.exports = { user_login, check_user, get_user_details };

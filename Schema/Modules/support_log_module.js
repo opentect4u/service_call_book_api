@@ -19,8 +19,10 @@ const GetTktNo = () => {
 }
 
 const SupLogGet = (args) => {
-    const { id } = args;
+    const { id, tag } = args;
     var where = id != '' && id > 0 ? `WHERE a.id = ${id}` : '';
+    var suf = id != '' && id > 0 ? 'AND' : 'WHERE';
+    var assin = tag == '1' && tag != '' ? `${suf} assign_engg IS NULL` : (tag == '0' && tag != '' ? `${suf} assign_engg IS NOT NULL AND work_status='0'` : (tag == '2' && tag != '' ? `${suf} work_status='0'` : ''));
     var sql = `SELECT a.*, b.client_name, c.district_name, d.client_type, e.oprn_mode, b.working_hrs, b.amc_upto, b.rental_upto, 
     f.priority_mode priority, g.module_type module, h.emp_name, i.tkt_status as tktStatus
     FROM td_support_log a
@@ -31,7 +33,7 @@ const SupLogGet = (args) => {
     JOIN md_priority_mode f ON a.priority_status=f.id
     JOIN md_module g ON a.tkt_module=g.id
     LEFT JOIN md_employee h ON a.assign_engg=h.id
-	LEFT JOIN md_tkt_status i ON a.tkt_status=i.id ${where}`;
+	LEFT JOIN md_tkt_status i ON a.tkt_status=i.id ${where} ${assin} ORDER BY a.id`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
             // console.log(result);
@@ -50,10 +52,11 @@ const SupLogEntry = async (args) => {
     const { client_id, tkt_module, phone_no, priority_status, prob_reported, remarks, user_id } = args;
     const tkt_no = await GetTktNo();
     const tmstamp = dateFormat(new Date(), "ddmmyy");
+    var tkt = `T/${tmstamp}/${client_id}/${tkt_no[0].id}`;
     console.log(tmstamp);
     var sql = `INSERT INTO td_support_log
     (tkt_no, client_id, tkt_module, log_in, phone_no, priority_status, prob_reported, remarks, created_by, created_dt)
-     VALUES ("TKT/${tkt_no[0].id}/${client_id}/${tmstamp}", "${client_id}", "${tkt_module}", "${datetime}", "${phone_no}", "${priority_status}",
+     VALUES ("${tkt}", "${client_id}", "${tkt_module}", "${datetime}", "${phone_no}", "${priority_status}",
      "${prob_reported}", "${remarks}", "${user_id}", "${datetime}")`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, lastId) => {
@@ -101,8 +104,8 @@ const UpdateAssignTkt = (args) => {
 }
 
 const UpdateDeliverTkt = (args) => {
-    const { id, call_attend, delivery, tkt_status, remarks, user_id } = args;
-    var sql = `UPDATE td_support_log SET call_attend="${call_attend}", delivery="${delivery}", tkt_status="${tkt_status}", remarks="${remarks}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
+    const { id, call_attend, delivery, tkt_status, remarks, work_status, user_id } = args;
+    var sql = `UPDATE td_support_log SET call_attend="${call_attend}", delivery="${delivery}", tkt_status="${tkt_status}", remarks="${remarks}", work_status="${work_status}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, lastId) => {
             if (err) {
@@ -116,4 +119,20 @@ const UpdateDeliverTkt = (args) => {
     })
 }
 
-module.exports = { SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt };
+const DeleteTkt = (args) => {
+    const { id } = args;
+    var sql = `DELETE FROM td_support_log WHERE id = "${id}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: 'Deleted Successfully!!' };
+            }
+            resolve(data)
+        })
+    })
+}
+
+module.exports = { SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt, DeleteTkt };
