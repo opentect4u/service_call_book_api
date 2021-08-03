@@ -59,7 +59,7 @@ const update_deliver_tkt = {
         delivery: { type: GraphQLString },
         tkt_status: { type: GraphQLString },
         remarks: { type: GraphQLString },
-        work_status: { type: GraphQLString },
+		work_status: { type: GraphQLString },
         user_id: { type: GraphQLString }
     },
     async resolve(parent, args) {

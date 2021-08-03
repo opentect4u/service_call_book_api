@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const dateFormat = require('dateformat');
 const { UserType } = require("../TypeDefs/User");
 const db = require('../db');
-const { InsertUser, UpdateUserType, UpdateUserStatus, UpdateApprovalFlag } = require('../Modules/user_module');
+const { InsertUser, UpdateUserType, UpdateUserStatus, UpdateApprovalFlag, ForgotPassword } = require('../Modules/user_module');
 const { MessageType } = require('../TypeDefs/Messages');
 
 const create_user = {
@@ -58,6 +58,15 @@ const update_approve_status = {
     }
 }
 
+const forgot_password = {
+    type: MessageType,
+    args: { email_id: { type: GraphQLString } },
+    async resolve(parent, args) {
+        var result = await ForgotPassword(args);
+        return result;
+    }
+}
+
 const update_user = {
     type: UserType,
     args: { id: { type: GraphQLID }, password: { type: GraphQLString } },
@@ -91,4 +100,4 @@ const delete_user = {
     }
 }
 
-module.exports = { create_user, delete_user, update_user, update_user_type, update_user_status, update_approve_status };
+module.exports = { create_user, delete_user, update_user, update_user_type, update_user_status, update_approve_status, forgot_password };

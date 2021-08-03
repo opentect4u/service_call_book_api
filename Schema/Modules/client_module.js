@@ -12,8 +12,7 @@ const GetClient = (args) => {
 	FROM md_client a 
 	JOIN md_client_type b ON a.client_type_id=b.id 
 	JOIN md_district c ON a.district_id=c.id 
-	JOIN md_oprn_mode d ON a.oprn_mode_id=d.id ${check} ${active_chk}`;
-    //var sql = `SELECT a.*, b.client_type, c.district_name FROM md_client a JOIN md_client_type b ON a.client_type_id=b.id JOIN md_district c ON a.district_id=c.id ${check} ${active_chk}`;
+	JOIN md_oprn_mode d ON a.oprn_mode_id=d.id ${check} ${active_chk} ORDER BY a.id`;
     // console.log(sql);
     // console.log({ active, check, whr, sql });
     return new Promise((resolve, reject) => {

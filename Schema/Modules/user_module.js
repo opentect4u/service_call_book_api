@@ -31,7 +31,7 @@ const InsertUser = (args) => {
     return new Promise(async (resolve, reject) => {
         //let data = '';
         //let check_user_sql = `SELECT * FROM md_users WHERE user_type = "${user_type}" AND code_no = "${code_no}"`;
-        let check_user_sql = `SELECT * FROM md_users WHERE code_no = "${code_no}"`;
+        let check_user_sql = `SELECT * FROM md_users WHERE code_no = "${code_no}" AND user_type = "${user_type}"`;
         await db.query(check_user_sql, async (err, result) => {
             if (err) {
                 console.log(err);
@@ -51,7 +51,7 @@ const UserLogin = (args) => {
     const { user_id, password } = args;
     return new Promise((resolve, reject) => {
         let status = '';
-        let sql = `SELECT a.*, b.emp_name FROM md_users a LEFT JOIN md_employee b ON a.code_no=b.emp_code WHERE a.user_id = "${user_id}" AND a.user_status="A" AND a.approval_flag = 'A'`;
+        let sql = `SELECT a.*, IF(a.user_type = 'C', c.client_name, b.emp_name)as emp_name FROM md_users a LEFT JOIN md_employee b ON a.code_no=b.emp_code LEFT JOIN md_client c ON a.code_no=c.id WHERE a.user_id = "${user_id}" AND a.user_status="A" AND a.approval_flag = 'A'`;
         db.query(sql, async (err, result) => {
             if (err) {
                 console.log(err);
@@ -223,4 +223,95 @@ const UpdateApprovalFlag = (args) => {
     })
 }
 
-module.exports = { InsertUser, UserLogin, CheckUser, GetUserDetails, UpdateUserType, UpdateUserStatus, GetUserDetailsById, UpdateApprovalFlag };
+const CheckEmail = (args) => {
+    const { email_id } = args;
+    var sql = `SELECT * FROM md_users WHERE user_id = "${email_id}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } if (result.length > 0) {
+                data = { success: 1, message: 'Email Exist' };
+            } else {
+                data = { success: 0, message: 'Email ID Is Not Registered' };
+            }
+            resolve(data);
+        })
+    })
+}
+
+const ForgotPassword = (args) => {
+    const { email_id } = args;
+    var password = 'password';
+    const pass = bcrypt.hashSync(password, 10);
+    var datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
+    var sql = `UPDATE md_users SET password = "${pass}", modified_by = "${email_id}", modified_dt = "${datetime}" WHERE user_id = "${email_id}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, async (err, lastId) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                // FOR LOCAL
+                var transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: 'synergicbbps@gmail.com',
+                        pass: 'Signature@123'
+                    }
+                });
+
+                // FOR SERVER
+
+                // var transporter = nodemailer.createTransport({
+                //     host: 'webmail.synergicportal.in',
+                //     port: 25,
+                //     secure: false,
+                //     auth: {
+                //         user: 'support@synergicportal.in',
+                //         pass: 'Support!sSs#2021'
+                //     },
+                //     tls: { rejectUnauthorized: false }
+                // });
+                var mailOptions = {
+                    from: 'support@synergicportal.in',
+                    to: "samantasubham9804@gmail.com",//email_id,
+                    subject: 'SynergicPortal',
+                    html: '<!doctype html>'
+                        + '<html>'
+                        + '<head>'
+                        + '<meta charset="utf-8">'
+                        + '<title>HomeworkHelp</title>'
+                        + '<style type="text/css">body{font - size: 14px; color: #494949; font-size: 15px; margin: 0; padding: 0;}</style>'
+                        + '</head>'
+                        + '<body>'
+                        + '<div style="max-width: 830px; margin: 0 auto; padding: 0 15px;">'
+                        + '<table width="100%" border="0" cellspacing="0" cellpadding="0">'
+                        + '<tbody>'
+                        + '<tr>'
+                        + '<td align="left" valign="top" style="text-align: center; padding: 14px 0; border-bottom: #ef3e36 solid 3px;"><img src="https://support.synergicportal.in/assets/Login_assets/images/logo.png" width="171" height="43" alt="" /></td>'
+                        + '</tr>'
+                        + '<tr>'
+                        + '<td align="left" valign="top" style="padding: 25px 15px 5px 15px; font-family: Arial; font-size: 15px; line-height: 25px;">'
+                        + '<center><p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;"><span style="color: #2fd025;">Your Password Reseted Successsfully..</span></p></center>'
+                        + '<p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;">Please try to login with new password <b><i>"password"</i></b>.</p>'
+                        + '<p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;"><b><small><i><span style="color: #d02525; font-size: 11px;">PLEASE RESET YOUR PASSWORD AFTER LOGIN, FOR SECURITY PURPOSE.</span></i></small></b></p>'
+                        + '</td>'
+                        + '</tr>'
+                        + '</tbody>'
+                        + '</table>'
+                        + '</div>'
+                        + '</body>'
+                        + '</html>'
+                };
+                await transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) console.log(error);
+                    console.log('Email sent: ' + info.response);
+                })
+                data = { success: 1, message: 'Please Check Your Email For New Password' };
+            }
+            resolve(data);
+        })
+    })
+}
+
+module.exports = { InsertUser, UserLogin, CheckUser, GetUserDetails, UpdateUserType, UpdateUserStatus, GetUserDetailsById, UpdateApprovalFlag, CheckEmail, ForgotPassword };

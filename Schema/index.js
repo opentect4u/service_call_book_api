@@ -1,10 +1,10 @@
 const { GraphQLSchema, GraphQLObjectType } = require("graphql");
-const { user_login, check_user, get_user_details } = require('./Queries/User');
-const { create_user, delete_user, update_user, update_user_status, update_user_type, update_approve_status } = require('./Mutations/User');
+const { user_login, check_user, get_user_details, get_user_details_by_id, check_email } = require('./Queries/User');
+const { create_user, delete_user, update_user, update_user_status, update_user_type, update_approve_status, forgot_password } = require('./Mutations/User');
 const { create_emp, update_emp, delete_emp } = require("./Mutations/Emp_master_mutation");
 const { create_master_data, update_master_data, delete_master_data } = require("./Mutations/Master_mutation");
 const { get_master_data, get_client_type_data, get_tkt_status_data, get_oprn_mode_data, get_priotity_mode_data, get_module_type_data } = require("./Queries/Master_query");
-const { get_emp } = require("./Queries/Emp_master_query");
+const { get_emp, get_eng_list } = require("./Queries/Emp_master_query");
 const { get_client, get_district } = require("./Queries/Client_query");
 const { create_client, update_client, delete_client } = require("./Mutations/Client_mutation");
 const { create_tkt, update_assign_tkt, update_deliver_tkt, update_raise_tkt, delete_tkt } = require("./Mutations/Support_log_mutation");
@@ -24,10 +24,14 @@ const UserLogin = new GraphQLObjectType({
         getPriorityModeData: get_priotity_mode_data,
         getModuleTypeData: get_module_type_data,
         getEmp: get_emp,
+        getEngList: get_eng_list,
         getClient: get_client,
         getDistrict: get_district,
         getSupportLogDtls: get_supp_log,
-        getUserDetails: get_user_details
+        getUserDetailsA: get_user_details,
+        getUserDetailsD: get_user_details,
+        getUserDetailsById: get_user_details_by_id,
+        checkEmail: check_email
     }
 })
 
@@ -53,7 +57,8 @@ const UserMutation = new GraphQLObjectType({
         deleteTkt: delete_tkt,
         updateUserStatus: update_user_status,
         updateUserType: update_user_type,
-        approveUser: update_approve_status
+        approveUser: update_approve_status,
+        forgotPassword: forgot_password
     }
 })
 

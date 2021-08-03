@@ -8,7 +8,9 @@ const get_supp_log = {
     type: new GraphQLList(SupportLogTypDf),
     args: {
         id: { type: GraphQLString },
-        tag: { type: GraphQLString }
+        tag: { type: GraphQLString },
+        user_type: { type: GraphQLString },
+        user_id: { type: GraphQLString }
     },
     async resolve(parent, args) {
         var result = await SupLogGet(args);
