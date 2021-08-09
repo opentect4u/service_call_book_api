@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const dateFormat = require('dateformat');
 const { UserType } = require("../TypeDefs/User");
 const db = require('../db');
-const { InsertUser, UpdateUserType, UpdateUserStatus, UpdateApprovalFlag, ForgotPassword } = require('../Modules/user_module');
+const { InsertUser, UpdateUserType, UpdateUserStatus, UpdateApprovalFlag, ForgotPassword, ResetPassword, UpdateProfile, UpdateLoginStatus } = require('../Modules/user_module');
 const { MessageType } = require('../TypeDefs/Messages');
 
 const create_user = {
@@ -67,6 +67,50 @@ const forgot_password = {
     }
 }
 
+const reset_password = {
+    type: MessageType,
+    args: {
+        password: { type: GraphQLString },
+        user_email: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await ResetPassword(args);
+        return result;
+    }
+}
+
+const update_profile = {
+    type: MessageType,
+    args: {
+        id: { type: GraphQLString },
+        user_type: { type: GraphQLString },
+        phone_no: { type: GraphQLString },
+        emp_name: { type: GraphQLString },
+        designation: { type: GraphQLString },
+        district_id: { type: GraphQLString },
+        client_name: { type: GraphQLString },
+        oprn_mode_id: { type: GraphQLString },
+        client_type_id: { type: GraphQLString },
+        client_addr: { type: GraphQLString },
+        working_hrs: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await UpdateProfile(args);
+        return result;
+    }
+}
+
+const update_login_status = {
+    type: MessageType,
+    args: { user_id: { type: GraphQLString }, login_status: { type: GraphQLString } },
+    async resolve(parent, args) {
+        const { user_id, login_status } = args;
+        var status = login_status;
+        var result = await UpdateLoginStatus(args, status);
+        return result;
+    }
+}
+
 const update_user = {
     type: UserType,
     args: { id: { type: GraphQLID }, password: { type: GraphQLString } },
@@ -100,4 +144,4 @@ const delete_user = {
     }
 }
 
-module.exports = { create_user, delete_user, update_user, update_user_type, update_user_status, update_approve_status, forgot_password };
+module.exports = { create_user, delete_user, update_user, update_user_type, update_user_status, update_approve_status, forgot_password, reset_password, update_profile, update_login_status };

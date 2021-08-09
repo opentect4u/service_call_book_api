@@ -1,7 +1,7 @@
 const { GraphQLList, printError, GraphQLString } = require('graphql')
-const { UserType } = require('../TypeDefs/User')
+const { UserType, ProfileType } = require('../TypeDefs/User')
 const db = require('../db');
-const { UserLogin, CheckUser, GetUserDetails, GetUserDetailsById, CheckEmail } = require('../Modules/user_module');
+const { UserLogin, CheckUser, GetUserDetails, GetUserDetailsById, CheckEmail, GetProfileDtls } = require('../Modules/user_module');
 const { MessageType } = require('../TypeDefs/Messages');
 
 const user_login = {
@@ -35,7 +35,7 @@ const get_user_details = {
 
 const get_user_details_by_id = {
     type: new GraphQLList(UserType),
-    args: { user_id: { type: GraphQLString } },
+    args: { user_email: { type: GraphQLString } },
     async resolve(parent, args) {
         const result = await GetUserDetailsById(args);
         return result;
@@ -51,4 +51,16 @@ const check_email = {
     }
 }
 
-module.exports = { user_login, check_user, get_user_details, get_user_details_by_id, check_email };
+const get_profile_dtls = {
+    type: new GraphQLList(ProfileType),
+    args: {
+        user_email: { type: GraphQLString },
+        user_type: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await GetProfileDtls(args);
+        return result;
+    }
+}
+
+module.exports = { user_login, check_user, get_user_details, get_user_details_by_id, check_email, get_profile_dtls };

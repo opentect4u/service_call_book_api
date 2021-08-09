@@ -50,7 +50,7 @@ const InsertUser = (args) => {
 const UserLogin = (args) => {
     const { user_id, password } = args;
     return new Promise((resolve, reject) => {
-        let status = '';
+        let status = '1';
         let sql = `SELECT a.*, IF(a.user_type = 'C', c.client_name, b.emp_name)as emp_name FROM md_users a LEFT JOIN md_employee b ON a.code_no=b.emp_code LEFT JOIN md_client c ON a.code_no=c.id WHERE a.user_id = "${user_id}" AND a.user_status="A" AND a.approval_flag = 'A'`;
         db.query(sql, async (err, result) => {
             if (err) {
@@ -59,6 +59,7 @@ const UserLogin = (args) => {
             }
             if (result.length > 0) {
                 if (await bcrypt.compare(password, result[0].password)) {
+                    await UpdateLoginStatus(args, status);
                     data = { success: 1, message: JSON.stringify(result) };
                 } else {
                     data = { success: 0, message: 'Please Check Your User ID Or Password' }
@@ -69,6 +70,21 @@ const UserLogin = (args) => {
             // console.log(result[0].password);
             resolve(data);
         });
+    })
+}
+
+const UpdateLoginStatus = (args, status) => {
+    const { user_id } = args;
+    var sql = `UPDATE md_users SET login_status = "${status}" WHERE user_id = "${user_id}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                data = { success: 0, message: 'Something Went Wrong' };
+            } else {
+                data = { success: 1, message: 'Data Updated' };
+            }
+            resolve(data);
+        })
     })
 }
 
@@ -145,8 +161,8 @@ const UpdateUserStatus = (args) => {
 }
 
 const GetUserDetailsById = (args) => {
-    const { user_id } = args;
-    var sql = `SELECT * FROM md_users WHERE code_no=${user_id}`;
+    const { user_email } = args;
+    var sql = `SELECT * FROM md_users WHERE user_id="${user_email}"`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
             if (err) {
@@ -252,29 +268,29 @@ const ForgotPassword = (args) => {
                 data = { success: 0, message: JSON.stringify(err) };
             } else {
                 // FOR LOCAL
-                var transporter = nodemailer.createTransport({
-                    service: 'gmail',
-                    auth: {
-                        user: 'synergicbbps@gmail.com',
-                        pass: 'Signature@123'
-                    }
-                });
+                // var transporter = nodemailer.createTransport({
+                //     service: 'gmail',
+                //     auth: {
+                //         user: 'synergicbbps@gmail.com',
+                //         pass: 'Signature@123'
+                //     }
+                // });
 
                 // FOR SERVER
 
-                // var transporter = nodemailer.createTransport({
-                //     host: 'webmail.synergicportal.in',
-                //     port: 25,
-                //     secure: false,
-                //     auth: {
-                //         user: 'support@synergicportal.in',
-                //         pass: 'Support!sSs#2021'
-                //     },
-                //     tls: { rejectUnauthorized: false }
-                // });
+                var transporter = nodemailer.createTransport({
+                    host: 'webmail.synergicportal.in',
+                    port: 25,
+                    secure: false,
+                    auth: {
+                        user: 'support@synergicportal.in',
+                        pass: 'Support!sSs#2021'
+                    },
+                    tls: { rejectUnauthorized: false }
+                });
                 var mailOptions = {
                     from: 'support@synergicportal.in',
-                    to: "samantasubham9804@gmail.com",//email_id,
+                    to: email_id,
                     subject: 'SynergicPortal',
                     html: '<!doctype html>'
                         + '<html>'
@@ -314,4 +330,57 @@ const ForgotPassword = (args) => {
     })
 }
 
-module.exports = { InsertUser, UserLogin, CheckUser, GetUserDetails, UpdateUserType, UpdateUserStatus, GetUserDetailsById, UpdateApprovalFlag, CheckEmail, ForgotPassword };
+const ResetPassword = (args) => {
+    const { password, user_email } = args;
+    const pass = bcrypt.hashSync(password, 10);
+    var datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
+    var sql = `UPDATE md_users SET password = "${pass}", modified_by = "${user_email}", modified_dt = "${datetime}" WHERE user_id = "${user_email}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: 'Password Updated Successfully' };
+            }
+            resolve(data);
+        })
+    })
+}
+
+const GetProfileDtls = (args) => {
+    const { user_email, user_type } = args;
+    var join_cls = user_type != 'C' ? 'JOIN md_employee b ON a.code_no=b.emp_code' : 'JOIN md_client b ON a.code_no=b.id';
+    var select = user_type != 'C' ? 'b.id, b.emp_name, b.phone_no, b.email, b.emp_designation, b.emp_code' : 'b.id, b.district_id, b.client_name, b.oprn_mode_id, b.client_type_id, b.client_addr, b.phone_no, b.email, b.working_hrs, b.amc_upto, b.rental_upto';
+    var sql = `SELECT a.user_type, ${select} FROM md_users a ${join_cls} WHERE a.user_id = "${user_email}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+            }
+            resolve(result);
+        })
+    })
+}
+
+const UpdateProfile = (args) => {
+    const { id, phone_no, emp_name, designation, user_type, district_id, client_name, oprn_mode_id, client_type_id, client_addr, working_hrs } = args;
+    var fields = user_type != 'C' ? `emp_name = "${emp_name}", phone_no = "${phone_no}", emp_designation = "${designation}"` : `district_id = "${district_id}", client_name = "${client_name}", oprn_mode_id = "${oprn_mode_id}", client_type_id = "${client_type_id}", client_addr = "${client_addr}", phone_no = "${phone_no}", working_hrs = "${working_hrs}"`;
+    var column = user_type != 'C' ? 'emp_code' : 'id';
+    var db_name = user_type != 'C' ? 'md_employee' : 'md_client';
+    var sql = `UPDATE ${db_name} SET ${fields} WHERE ${column} = "${id}"`;
+    console.log(sql);
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: 'Updated Successfully' };
+            }
+            resolve(data)
+        })
+    })
+}
+
+module.exports = { InsertUser, UserLogin, CheckUser, GetUserDetails, UpdateUserType, UpdateUserStatus, GetUserDetailsById, UpdateApprovalFlag, CheckEmail, ForgotPassword, ResetPassword, GetProfileDtls, UpdateProfile, UpdateLoginStatus };

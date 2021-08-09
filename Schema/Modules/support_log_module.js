@@ -23,8 +23,8 @@ const SupLogGet = (args) => {
     var where = id != '' && id > 0 ? `WHERE a.id = ${id}` : '';
     var suf = id != '' && id > 0 ? 'AND' : 'WHERE';
     var assin = tag == '1' && tag != '' ? `${suf} assign_engg IS NULL` : (tag == '0' && tag != '' ? `${suf} assign_engg IS NOT NULL AND work_status='0'` : (tag == '2' && tag != '' ? `${suf} work_status='0'` : ''));
-	var pre_user = id > 0 || tag >= 0 ? 'AND' : 'WHERE';
-	var user = user_type == 'E'? `${pre_user} a.assign_engg="${user_id}"` : '';
+    var pre_user = id > 0 || tag >= 0 ? 'AND' : 'WHERE';
+    var user = user_type == 'E' ? `${pre_user} a.assign_engg="${user_id}"` : '';
     var sql = `SELECT a.*, b.client_name, c.district_name, d.client_type, e.oprn_mode, b.working_hrs, b.amc_upto, b.rental_upto, 
     f.priority_mode priority, g.module_type module, h.emp_name, i.tkt_status as tktStatus
     FROM td_support_log a
@@ -44,7 +44,7 @@ const SupLogGet = (args) => {
                 data = { success: 0, message: JSON.stringify(err) };
             } else {
                 data = result;
-				//data = { success: 0, message: sql };
+                //data = { success: 0, message: sql };
             }
             resolve(data);
         })
@@ -138,4 +138,67 @@ const DeleteTkt = (args) => {
     })
 }
 
-module.exports = { SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt, DeleteTkt };
+const SearchByDate = (args) => {
+    const { frm_dt, to_dt, user_id } = args;
+    var wht_con = user_id != '' && user_id > 0 ? `AND a.assign_engg = ${user_id}` : '';
+    var sql = `SELECT a.*, b.client_name, h.emp_name, i.tkt_status as tktStatus
+    FROM td_support_log a
+    JOIN md_client b ON a.client_id=b.id
+    LEFT JOIN md_employee h ON a.assign_engg=h.emp_code
+    LEFT JOIN md_tkt_status i ON a.tkt_status=i.id
+    WHERE date(a.log_in) >= "${frm_dt}" AND date(a.log_in) <= "${to_dt}" ${wht_con}`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+
+const SearchByTktNo = (args) => {
+    const { tkt_no, user_id } = args;
+    var wht_con = user_id != '' && user_id > 0 ? `AND a.assign_engg = ${user_id}` : '';
+    var sql = `SELECT a.*, b.client_name, h.emp_name, i.tkt_status as tktStatus
+    FROM td_support_log a
+    JOIN md_client b ON a.client_id=b.id
+    LEFT JOIN md_employee h ON a.assign_engg=h.emp_code
+    LEFT JOIN md_tkt_status i ON a.tkt_status=i.id
+    WHERE a.tkt_no = "${tkt_no}" ${wht_con}`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+
+const CheckTktNo = (args) => {
+    const { tkt_no } = args;
+    var sql = `SELECT * FROM td_support_log WHERE tkt_no = "${tkt_no}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                console.log(result.length);
+                if (result.length > 0) {
+                    data = { success: 1, message: 'Tkt No Exists' };
+                } else {
+                    data = { success: 0, message: 'Tkt No Not Exists' };
+                }
+
+            }
+            resolve(data);
+        })
+    })
+}
+
+module.exports = { GetTktNo, SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt, DeleteTkt, SearchByDate, SearchByTktNo, CheckTktNo };

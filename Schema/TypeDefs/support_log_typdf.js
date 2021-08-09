@@ -17,7 +17,7 @@ const SupportLogTypDf = new GraphQLObjectType({
         assign_engg: { type: GraphQLString },
         prob_reported: { type: GraphQLString },
         remarks: { type: GraphQLString },
-		work_status: { type: GraphQLString },
+        work_status: { type: GraphQLString },
         client_name: { type: GraphQLString },
         district_name: { type: GraphQLString },
         client_type: { type: GraphQLString },
@@ -28,7 +28,8 @@ const SupportLogTypDf = new GraphQLObjectType({
         priority: { type: GraphQLString },
         module: { type: GraphQLString },
         emp_name: { type: GraphQLString },
-		tktStatus: { type: GraphQLString }
+        tktStatus: { type: GraphQLString },
+        client_addr: { type: GraphQLString }
     })
 })
 
