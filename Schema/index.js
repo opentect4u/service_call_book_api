@@ -1,6 +1,6 @@
 const { GraphQLSchema, GraphQLObjectType } = require("graphql");
 const { user_login, check_user, get_user_details, get_user_details_by_id, check_email, get_profile_dtls } = require('./Queries/User');
-const { create_user, delete_user, update_user, update_user_status, update_user_type, update_approve_status, forgot_password, reset_password, update_profile, update_login_status } = require('./Mutations/User');
+const { create_user, delete_user, update_user, update_user_status, update_user_type, update_approve_status, forgot_password, reset_password, update_profile, update_login_status, upload_file } = require('./Mutations/User');
 const { create_emp, update_emp, delete_emp } = require("./Mutations/Emp_master_mutation");
 const { create_master_data, update_master_data, delete_master_data } = require("./Mutations/Master_mutation");
 const { get_master_data, get_client_type_data, get_tkt_status_data, get_oprn_mode_data, get_priotity_mode_data, get_module_type_data } = require("./Queries/Master_query");
@@ -8,10 +8,10 @@ const { get_emp, get_eng_list } = require("./Queries/Emp_master_query");
 const { get_client, get_district } = require("./Queries/Client_query");
 const { create_client, update_client, delete_client } = require("./Mutations/Client_mutation");
 const { create_tkt, update_assign_tkt, update_deliver_tkt, update_raise_tkt, delete_tkt } = require("./Mutations/Support_log_mutation");
-const { get_supp_log, search_by_date, search_by_tkt_no, check_tkt_no } = require("./Queries/Support_log_query");
+const { get_supp_log, search_by_date, search_by_tkt_no, check_tkt_no, get_supp_log_done } = require("./Queries/Support_log_query");
 const { client_get_tkt } = require("./Queries/Client_support_query");
 const { client_tkt_save } = require("./Mutations/Client_support_mutation");
-const { open_close_tkt, close_tkt, open_tkt_by_status } = require("./Queries/Dashboard_query");
+const { open_close_tkt, close_tkt, open_tkt_by_status, work_done, total_tkt_by_date, total_tkt_by_client } = require("./Queries/Dashboard_query");
 
 // console.log(USER.get_all_users);
 
@@ -42,7 +42,11 @@ const UserLogin = new GraphQLObjectType({
         getProfileDtls: get_profile_dtls,
         openCloseTkt: open_close_tkt,
         closeTkt: close_tkt,
-        openTktByStatus: open_tkt_by_status
+        openTktByStatus: open_tkt_by_status,
+        workDone: work_done,
+        totalTktByDate: total_tkt_by_date,
+        getSuppLogDone: get_supp_log_done,
+        totalTktByClient: total_tkt_by_client
     }
 })
 
@@ -74,6 +78,7 @@ const UserMutation = new GraphQLObjectType({
         resetPassword: reset_password,
         updateProfile: update_profile,
         updateLoginStatus: update_login_status
+        // uploadImage: upload_file
     }
 })
 

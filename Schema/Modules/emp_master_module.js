@@ -87,18 +87,18 @@ const DeleteEmp = (args) => {
 }
 
 const GetEngList = (args) => {
-	let sql = `SELECT a.* FROM md_employee a JOIN md_users b ON a.emp_code=b.code_no WHERE user_type IN('M','T','E') AND user_status='A'`;
-	return new Promise((resolve, reject) => {
-		db.query(sql, (err, result) => {
-			if (err) {
+    let sql = `SELECT a.* FROM md_employee a JOIN md_users b ON a.emp_code=b.code_no WHERE user_type IN('M','T','E') AND user_status='A' ORDER BY a.emp_name`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
                 console.log({ msg: err });
                 data = { success: 0, message: JSON.stringify(err) };
             } else {
                 data = result;
             }
-			resolve(data);
-		})
-	})
+            resolve(data);
+        })
+    })
 }
 
 module.exports = { empSave, GetEmpData, emp_update, DeleteEmp, GetEngList };

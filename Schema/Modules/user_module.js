@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const dateFormat = require('dateformat');
 const nodemailer = require('nodemailer');
+// const fs = require('fs');
 const Buffer = require('buffer').Buffer;
 const db = require('../db');
 let data = {};
@@ -382,5 +383,12 @@ const UpdateProfile = (args) => {
         })
     })
 }
+
+// const UploadFile = async ({ image }) => {
+//     const { filename, mimetype, createReadStream } = await image;
+//     const stream = createReadStream();
+    
+//     // require('../../')
+// }
 
 module.exports = { InsertUser, UserLogin, CheckUser, GetUserDetails, UpdateUserType, UpdateUserStatus, GetUserDetailsById, UpdateApprovalFlag, CheckEmail, ForgotPassword, ResetPassword, GetProfileDtls, UpdateProfile, UpdateLoginStatus };

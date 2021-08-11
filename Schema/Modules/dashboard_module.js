@@ -78,7 +78,83 @@ const OpenTktByStatus = (args) => {
     })
 }
 
-module.exports = { OpenCloseTkt, CloseTkt, OpenTktByStatus };
+const WorkDone = (args) => {
+    const { user_type, user_id } = args;
+    var whr_cls = user_type == 'E' ? `AND a.assign_engg = "${user_id}"` : '';
+    var sql = `SELECT COUNT(a.tkt_no) as done, b.emp_name
+                FROM td_support_log a
+                JOIN md_employee b ON a.assign_engg=b.emp_code
+                WHERE a.work_status > 0
+                AND DATE(log_in) = CURRENT_DATE() ${whr_cls}
+                group by a.assign_engg
+                order by a.assign_engg`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+
+const TotalTktByDate = (args) => {
+    const { user_type, user_id } = args;
+    var whr_cls = user_type == 'E' ? `AND assign_engg = "${user_id}"` : '';
+    var sql = `SELECT no_tkt, date_name
+                FROM
+                (	SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-6, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-6) ${whr_cls}
+                    UNION
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-5, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-5) ${whr_cls}
+                    UNION
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-4, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-4) ${whr_cls}
+                    UNION
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-3, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-3) ${whr_cls}
+                    UNION
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-2, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-2) ${whr_cls}
+                    UNION
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE() - 1, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE() - 1) ${whr_cls}
+                    UNION
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE(), "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()) ${whr_cls}
+                )a`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+
+const TotalTktByClint = (args) => {
+    const { user_type, user_id } = args;
+    var whr_cls = user_type == 'E' ? `AND a.assign_engg = "${user_id}"` : '';
+    var sql = `SELECT COUNT(a.tkt_no) total_tkt, c.client_type
+                FROM td_support_log a
+                JOIN md_client b ON a.client_id=b.id
+                JOIN md_client_type c ON b.client_type_id=c.id
+                WHERE DATE(a.log_in) = DATE(CURRENT_DATE()) ${whr_cls}
+                GROUP BY b.client_type_id
+                ORDER BY b.client_type_id`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+
+
+module.exports = { OpenCloseTkt, CloseTkt, OpenTktByStatus, WorkDone, TotalTktByDate, TotalTktByClint };
 
 
 

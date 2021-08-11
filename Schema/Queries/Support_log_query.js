@@ -1,5 +1,5 @@
 const { GraphQLList, GraphQLString, GraphQLInt } = require("graphql");
-const { SupLogGet, SearchByDate, SearchByTktNo, CheckTktNo } = require("../Modules/support_log_module");
+const { SupLogGet, SearchByDate, SearchByTktNo, CheckTktNo, GetSupportLogDone } = require("../Modules/support_log_module");
 const { MessageType } = require("../TypeDefs/Messages");
 const { SupportLogTypDf } = require("../TypeDefs/support_log_typdf");
 
@@ -54,4 +54,16 @@ const check_tkt_no = {
     }
 }
 
-module.exports = { get_supp_log, search_by_date, search_by_tkt_no, check_tkt_no };
+const get_supp_log_done = {
+    type: new GraphQLList(SupportLogTypDf),
+    args: {
+        user_type: { type: GraphQLString },
+        user_id: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await GetSupportLogDone(args);
+        return result;
+    }
+}
+
+module.exports = { get_supp_log, search_by_date, search_by_tkt_no, check_tkt_no, get_supp_log_done };

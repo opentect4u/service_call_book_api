@@ -23,7 +23,7 @@ const CloseTktType = new GraphQLObjectType({
 const CloseTktByStatusType = new GraphQLObjectType({
     name: 'close_tkt_by_status',
     fields: () => ({
-        tkt_status: { type: GraphQLInt },
+        tkt_status: { type: GraphQLString },
         status: { type: GraphQLInt }
         // par: { type: GraphQLInt },
         // temp: { type: GraphQLInt },
@@ -47,4 +47,28 @@ const CloseTktByStatusType = new GraphQLObjectType({
     })
 })
 
-module.exports = { openedClosedTktType, CloseTktType, CloseTktByStatusType };
+const WorkDoneType = new GraphQLObjectType({
+    name: 'work_done',
+    fields: () => ({
+        done: { type: GraphQLInt },
+        emp_name: { type: GraphQLString }
+    })
+})
+
+const TotalTktByDateType = new GraphQLObjectType({
+    name: 'total_tkt_by_date',
+    fields: () => ({
+        no_tkt: { type: GraphQLInt },
+        date_name: { type: GraphQLString }
+    })
+})
+
+const TotalTktByClientType = new GraphQLObjectType({
+    name: 'total_tkt_by_client',
+    fields: () => ({
+        total_tkt: { type: GraphQLInt },
+        client_type: { type: GraphQLString }
+    })
+})
+
+module.exports = { openedClosedTktType, CloseTktType, CloseTktByStatusType, WorkDoneType, TotalTktByDateType, TotalTktByClientType };

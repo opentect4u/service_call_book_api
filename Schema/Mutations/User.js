@@ -1,4 +1,5 @@
 const { GraphQLString, GraphQLID, GraphQLInt } = require("graphql");
+// const { GraphQLUpload } = require('graphql-upload');
 const bcrypt = require('bcrypt');
 const dateFormat = require('dateformat');
 const { UserType } = require("../TypeDefs/User");
@@ -110,6 +111,18 @@ const update_login_status = {
         return result;
     }
 }
+
+// const upload_file = {
+//     type: MessageType,
+//     args: { image: { type: GraphQLUpload } },
+//     async resolve(parent, { image }) {
+//         const { filename, mimetype, createReadStream } = await image;
+//         const stream = createReadStream();
+//         var data = { message: filename, success: 1 };
+//         console.log({ filename, mimetype, stream });
+//         return data;
+//     }
+// }
 
 const update_user = {
     type: UserType,
