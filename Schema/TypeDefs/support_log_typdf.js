@@ -15,6 +15,8 @@ const SupportLogTypDf = new GraphQLObjectType({
         delivery: { type: GraphQLString },
         tkt_status: { type: GraphQLString },
         assign_engg: { type: GraphQLString },
+        assigned_by: { type: GraphQLString },
+        assigned_dt: { type: GraphQLString },
         prob_reported: { type: GraphQLString },
         remarks: { type: GraphQLString },
         work_status: { type: GraphQLString },
@@ -29,7 +31,18 @@ const SupportLogTypDf = new GraphQLObjectType({
         module: { type: GraphQLString },
         emp_name: { type: GraphQLString },
         tktStatus: { type: GraphQLString },
-        client_addr: { type: GraphQLString }
+        client_addr: { type: GraphQLString },
+        email: { type: GraphQLString },
+        emp_phone_no: { type: GraphQLString },
+        user_name: { type: GraphQLString },
+        file_path : { type: GraphQLString },
+        email_id: { type: GraphQLString },
+        client_type_id: { type: GraphQLString },
+        schema_name: { type: GraphQLString },
+        closed_by_client: { type: GraphQLString },
+        closed_by_client_datetime: { type: GraphQLString },
+        client_closing_remarks: { type: GraphQLString },
+        client_closed_rating: { type: GraphQLString }
     })
 })
 

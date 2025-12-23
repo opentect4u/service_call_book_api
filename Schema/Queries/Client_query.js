@@ -1,6 +1,6 @@
 const { GraphQLList, GraphQLID, GraphQLString, GraphQLInt } = require("graphql");
-const { GetClient, GetDistrict } = require("../Modules/client_module");
-const { ClientTypeDf, DistrictType } = require("../TypeDefs/Client_typdf");
+const { GetClient, GetDistrict, GetClientPri } = require("../Modules/client_module");
+const { ClientTypeDf, DistrictType, ClientPrivilegeTypeDf } = require("../TypeDefs/Client_typdf");
 
 
 const get_client = {
@@ -8,6 +8,15 @@ const get_client = {
     args: { id: { type: GraphQLString }, active: { type: GraphQLString } },
     async resolve(parent, args) {
         var status = await GetClient(args);
+        return status;
+    }
+}
+
+const get_client_privilege = {
+    type: new GraphQLList(ClientPrivilegeTypeDf),
+    args: { client_id: { type: GraphQLString }},
+    async resolve(parent, args) {
+        var status = await GetClientPri(args);
         return status;
     }
 }
@@ -20,4 +29,4 @@ const get_district = {
     }
 }
 
-module.exports = { get_client, get_district };
+module.exports = { get_client, get_district, get_client_privilege };

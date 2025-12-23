@@ -11,7 +11,8 @@ const UserType = new GraphQLObjectType({
         login_status: { type: GraphQLString },
         approval_flag: { type: GraphQLString },
         user_status: { type: GraphQLString },
-        user_name: { type: GraphQLString }
+        user_name: { type: GraphQLString },
+        image: { type: GraphQLString }
     }),
 })
 
@@ -33,7 +34,8 @@ const ProfileType = new GraphQLObjectType({
         client_addr: { type: GraphQLString },
         working_hrs: { type: GraphQLString },
         amc_upto: { type: GraphQLString },
-        rental_upto: { type: GraphQLString }
+        rental_upto: { type: GraphQLString },
+        image: { type: GraphQLString }
     }),
 })
 

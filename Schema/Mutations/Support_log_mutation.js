@@ -1,5 +1,5 @@
 const { GraphQLString } = require("graphql");
-const { SupLogEntry, UpdateAssignTkt, UpdateDeliverTkt, UpdateRaiseTkt, DeleteTkt } = require("../Modules/support_log_module");
+const { SupLogEntry, UpdateAssignTkt, UpdateDeliverTkt, UpdateRaiseTkt, DeleteTkt, UpdateTktStatus, UpdateAssignEng } = require("../Modules/support_log_module");
 const { MessageType } = require("../TypeDefs/Messages");
 
 
@@ -37,13 +37,42 @@ const update_raise_tkt = {
     }
 }
 
+const update_tkt_status = {
+    type: MessageType,
+    args: {
+        id: { type: GraphQLString },
+        user_id: { type: GraphQLString },
+        tkt_status: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await UpdateTktStatus(args);
+        return result;
+    }
+}
+
+const update_assign_eng = {
+    type: MessageType,
+    args: {
+        id: { type: GraphQLString },
+        assign_engg: { type: GraphQLString },
+        user_id: { type: GraphQLString },
+		assigned_by: { type: GraphQLString },
+    },
+    async resolve(parent, args) {
+        var result = await UpdateAssignEng(args);
+        return result;
+    }
+}
+
 const update_assign_tkt = {
     type: MessageType,
     args: {
         id: { type: GraphQLString },
         assign_engg: { type: GraphQLString },
+        prob_reported: { type: GraphQLString },
         remarks: { type: GraphQLString },
-        user_id: { type: GraphQLString }
+        user_id: { type: GraphQLString },
+        assigned_by: { type: GraphQLString }
     },
     async resolve(parent, args) {
         var result = await UpdateAssignTkt(args);
@@ -58,6 +87,7 @@ const update_deliver_tkt = {
         call_attend: { type: GraphQLString },
         delivery: { type: GraphQLString },
         tkt_status: { type: GraphQLString },
+        prob_reported: { type: GraphQLString },
         remarks: { type: GraphQLString },
 		work_status: { type: GraphQLString },
         user_id: { type: GraphQLString }
@@ -79,4 +109,4 @@ const delete_tkt = {
     }
 }
 
-module.exports = { create_tkt, update_assign_tkt, update_deliver_tkt, update_raise_tkt, delete_tkt };
+module.exports = { create_tkt, update_assign_tkt, update_deliver_tkt, update_raise_tkt, delete_tkt, update_tkt_status, update_assign_eng };

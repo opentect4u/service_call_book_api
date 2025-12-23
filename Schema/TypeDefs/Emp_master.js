@@ -9,7 +9,8 @@ const empMasterType = new GraphQLObjectType({
         phone_no: { type: GraphQLString },
         email: { type: GraphQLString },
         emp_designation: { type: GraphQLString },
-        remarks: { type: GraphQLString }
+        remarks: { type: GraphQLString },
+        user_type: { type: GraphQLString }
     })
 })
 

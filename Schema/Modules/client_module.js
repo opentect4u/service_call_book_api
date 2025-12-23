@@ -12,7 +12,7 @@ const GetClient = (args) => {
 	FROM md_client a 
 	JOIN md_client_type b ON a.client_type_id=b.id 
 	JOIN md_district c ON a.district_id=c.id 
-	JOIN md_oprn_mode d ON a.oprn_mode_id=d.id ${check} ${active_chk} ORDER BY a.id`;
+	JOIN md_oprn_mode d ON a.oprn_mode_id=d.id ${check} ${active_chk} ORDER BY a.client_name`;
     // console.log(sql);
     // console.log({ active, check, whr, sql });
     return new Promise((resolve, reject) => {
@@ -29,12 +29,37 @@ const GetClient = (args) => {
     })
 }
 
+const GetClientPri = (args) => {
+    const { client_id } = args;
+    var sql = `select a.client_id, sum(a.tkt_can_entry) tkt_can_entry, sum(a.pending_close) pending_close
+from(
+SELECT client_id, tkt_can_entry, 0 pending_close FROM md_client_privilege WHERE client_id = ${client_id}
+union
+select client_id, 0 tkt_can_entry, count(*) pending_close from td_support_log where client_id = ${client_id} and work_status > 0 and closed_by_client != 'Y'
+) a
+group by a.client_id`;
+    // console.log(sql);
+    // console.log({ active, check, whr, sql });
+    return new Promise((resolve, reject) => {
+        db.query(sql, async (err, result) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+                // throw err;
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+
 const save_client = (args) => {
-    const { client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, remarks, user_id } = args;
-    let rental_upto_val = rental_upto != '' ? rental_upto : null;
-    let amc_upto_val = amc_upto != '' ? amc_upto : null;
-    let sql = `INSERT INTO md_client (client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, remarks, created_by, created_dt) 
-    VALUES ("${client_name}", "${district_id}", "${client_type_id}", "${oprn_mode_id}", "${client_addr}", "${tech_person}", "${tech_designation}", "${phone_no}", "${email}", "${working_hrs}", "${support_mode}", ${amc_upto_val}, ${rental_upto_val}, "${support_status}", "${remarks}", "${user_id}", "${datetime}")`;
+    const { client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, schema_name, remarks, user_id } = args;
+    let rental_upto_val = rental_upto != '' ? `"${rental_upto}"` : null;
+    let amc_upto_val = amc_upto != '' ? `"${amc_upto}"` : null;
+    let sql = `INSERT INTO md_client (client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, schema_name, remarks, created_by, created_dt) 
+    VALUES ("${client_name}", "${district_id}", "${client_type_id}", "${oprn_mode_id}", "${client_addr}", "${tech_person}", "${tech_designation}", "${phone_no}", "${email}", "${working_hrs}", "${support_mode}", ${amc_upto_val}, ${rental_upto_val}, "${support_status}", "${schema_name}", "${remarks}", "${user_id}", "${datetime}")`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, InsertId) => {
             if (err) {
@@ -68,10 +93,10 @@ const CheckClient = (args) => {
 }
 
 const UpdateClient = (args) => {
-    const { id, client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, remarks, user_id } = args;
-    let rental_upto_val = rental_upto != '' ? `rental_upto = ${rental_upto},` : '';
-    let amc_upto_val = amc_upto != '' ? `amc_upto = ${amc_upto}, ` : '';
-    let sql = `UPDATE md_client SET client_name = "${client_name}", district_id = "${district_id}", client_type_id = "${client_type_id}", oprn_mode_id = "${oprn_mode_id}", client_addr = "${client_addr}", tech_person = "${tech_person}", tech_designation = "${tech_designation}", phone_no = "${phone_no}", email = "${email}", working_hrs = "${working_hrs}", support_mode = "${support_mode}", ${amc_upto_val} ${rental_upto_val} support_status = "${support_status}", remarks = "${remarks}", created_by = "${user_id}", created_dt = "${datetime}" WHERE id = ${id}`;
+    const { id, client_name, district_id, client_type_id, oprn_mode_id, client_addr, tech_person, tech_designation, phone_no, email, working_hrs, support_mode, amc_upto, rental_upto, support_status, schema_name, remarks, user_id } = args;
+    let rental_upto_val = rental_upto != '' ? `rental_upto = "${rental_upto}",` : '';
+    let amc_upto_val = amc_upto != '' ? `amc_upto = "${amc_upto}", ` : '';
+    let sql = `UPDATE md_client SET client_name = "${client_name}", district_id = "${district_id}", client_type_id = "${client_type_id}", oprn_mode_id = "${oprn_mode_id}", client_addr = "${client_addr}", tech_person = "${tech_person}", tech_designation = "${tech_designation}", phone_no = "${phone_no}", email = "${email}", working_hrs = "${working_hrs}", support_mode = "${support_mode}", ${amc_upto_val} ${rental_upto_val} support_status = "${support_status}", schema_name = "${schema_name}", remarks = "${remarks}", created_by = "${user_id}", created_dt = "${datetime}" WHERE id = ${id}`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, InsertId) => {
             if (err) {
@@ -116,4 +141,4 @@ const GetDistrict = () => {
     })
 }
 
-module.exports = { GetClient, CheckClient, UpdateClient, GetDistrict, DeleteClient };
+module.exports = { GetClient, CheckClient, UpdateClient, GetDistrict, DeleteClient, GetClientPri };

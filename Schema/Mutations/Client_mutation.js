@@ -19,6 +19,7 @@ const create_client = {
         amc_upto: { type: GraphQLString },
         rental_upto: { type: GraphQLString },
         support_status: { type: GraphQLString },
+        schema_name: { type: GraphQLString },
         remarks: { type: GraphQLString }
     },
     async resolve(parent, args) {
@@ -45,6 +46,7 @@ const update_client = {
         amc_upto: { type: GraphQLString },
         rental_upto: { type: GraphQLString },
         support_status: { type: GraphQLString },
+        schema_name: { type: GraphQLString },
         remarks: { type: GraphQLString },
         user_id: { type: GraphQLString }
     },

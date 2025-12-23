@@ -22,10 +22,11 @@ const SupLogGet = (args) => {
     const { id, tag, user_type, user_id } = args;
     var where = id != '' && id > 0 ? `WHERE a.id = ${id}` : '';
     var suf = id != '' && id > 0 ? 'AND' : 'WHERE';
-    var assin = tag == '1' && tag != '' ? `${suf} assign_engg IS NULL` : (tag == '0' && tag != '' ? `${suf} assign_engg IS NOT NULL AND work_status='0'` : (tag == '2' && tag != '' ? `${suf} work_status='0'` : ''));
+    //var assin = tag == '1' && tag != '' ? `${suf} assign_engg IS NULL` : (tag == '0' && tag != '' ? `${suf} assign_engg IS NOT NULL AND work_status='0'` : (tag == '2' && tag != '' ? `${suf} work_status='0'` : `${suf} work_status='0'`));
+    var assin = tag == '1' && tag != '' ? `${suf} a.work_status='0'` : (tag == '0' && tag != '' ? `${suf} assign_engg IS NOT NULL AND work_status='0'` : (tag == '2' && tag != '' ? `${suf} a.work_status='0'` : ''));
     var pre_user = id > 0 || tag >= 0 ? 'AND' : 'WHERE';
-    var user = user_type == 'E' ? `${pre_user} a.assign_engg="${user_id}"` : '';
-    var sql = `SELECT a.*, b.client_name, c.district_name, d.client_type, e.oprn_mode, b.working_hrs, b.amc_upto, b.rental_upto, 
+    var user = user_type == 'E'|| user_type == 'W' ? `${pre_user} a.assign_engg="${user_id}"` : '';
+    var sql = `SELECT a.*, b.client_name, b.client_type_id, b.schema_name, c.district_name, d.client_type, e.oprn_mode, b.working_hrs, b.amc_upto, b.rental_upto, 
     f.priority_mode priority, g.module_type module, h.emp_name, i.tkt_status as tktStatus
     FROM td_support_log a
     JOIN md_client b ON a.client_id=b.id
@@ -60,8 +61,7 @@ const SupLogEntry = async (args) => {
     console.log(tmstamp);
     var sql = `INSERT INTO td_support_log
     (tkt_no, client_id, tkt_module, log_in, phone_no, priority_status, prob_reported, remarks, created_by, created_dt)
-     VALUES ("${tkt}", "${client_id}", "${tkt_module}", "${datetime}", "${phone_no}", "${priority_status}",
-     "${prob_reported}", "${remarks}", "${user_id}", "${datetime}")`;
+     VALUES ("${tkt}", "${client_id}", "${tkt_module}", "${datetime}", "${phone_no}", "${priority_status}", '${prob_reported ? prob_reported.split("'").join("\\'") : ''}', '${remarks ? remarks.split("'").join("\\'") : ''}', "${user_id}", "${datetime}")`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, lastId) => {
             if (err) {
@@ -78,7 +78,7 @@ const SupLogEntry = async (args) => {
 const UpdateRaiseTkt = (args) => {
     const { id, tkt_module, phone_no, priority_status, prob_reported, remarks, user_id } = args;
     datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
-    var sql = `UPDATE td_support_log SET tkt_module="${tkt_module}", phone_no="${phone_no}", priority_status="${priority_status}", prob_reported="${prob_reported}", remarks="${remarks}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
+    var sql = `UPDATE td_support_log SET ${tkt_module > 0 ? `tkt_module="${tkt_module}",` : ''} phone_no="${phone_no}", ${priority_status > 0 ? `priority_status="${priority_status}",` : ''} prob_reported='${prob_reported ? prob_reported.split("'").join("\\'") : ''}', remarks='${remarks ? remarks.split("'").join("\\'") : ''}', modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, insertId) => {
             if (err) {
@@ -92,10 +92,44 @@ const UpdateRaiseTkt = (args) => {
     })
 }
 
-const UpdateAssignTkt = (args) => {
-    const { id, assign_engg, remarks, user_id } = args;
+const UpdateTktStatus = (args) => {
+    const { id, user_id, tkt_status } = args;
     datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
-    var sql = `UPDATE td_support_log SET assign_engg="${assign_engg}", tkt_status="4", remarks="${remarks}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
+    var sql = `UPDATE td_support_log SET tkt_status="${tkt_status}", call_attend="${datetime}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}" `;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: "Updated Successfully!!" };
+            }
+            resolve(data);
+        })
+    })
+}
+
+const UpdateAssignEng = (args) => {
+    const { id, assign_engg, user_id, assigned_by } = args;
+    datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
+    var sql = `UPDATE td_support_log SET assign_engg="${assign_engg}", assigned_by="${assigned_by}", assigned_dt="${datetime}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: "Updated Successfully!!" };
+            }
+            resolve(data);
+        })
+    })
+}
+
+const UpdateAssignTkt = (args) => {
+    const { id, assign_engg, prob_reported, remarks, user_id, assigned_by } = args;
+    datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
+    var sql = `UPDATE td_support_log SET assign_engg="${assign_engg}", remarks='${remarks ? remarks.split("'").join("\\'") : ''}', assigned_by = "${assigned_by}", assigned_dt = "${datetime}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, lastId) => {
             if (err) {
@@ -110,19 +144,25 @@ const UpdateAssignTkt = (args) => {
 }
 
 const UpdateDeliverTkt = (args) => {
-    const { id, call_attend, delivery, tkt_status, remarks, work_status, user_id } = args;
+    const { id, call_attend, delivery, tkt_status, prob_reported, remarks, work_status, user_id } = args;
+    var col = delivery != '' ? `delivery="${delivery}",` : '';
     datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
-    var sql = `UPDATE td_support_log SET call_attend="${call_attend}", delivery="${delivery}", tkt_status="${tkt_status}", remarks="${remarks}", work_status="${work_status}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
     return new Promise((resolve, reject) => {
-        db.query(sql, (err, lastId) => {
-            if (err) {
-                console.log({ msg: err });
-                data = { success: 0, message: JSON.stringify(err) };
-            } else {
-                data = { success: 1, message: "Updated Successfully!!" };
-            }
+        if (tkt_status == 4 && work_status == 1) {
+            data = { success: 2, message: 'Please Change Ticket Status' };
             resolve(data);
-        })
+        } else {
+            var sql = `UPDATE td_support_log SET call_attend="${call_attend}", ${col} tkt_status="${tkt_status}", prob_reported='${prob_reported ? prob_reported.split("'").join("\\'") : ''}', remarks='${remarks ? remarks.split("'").join("\\'") : ''}', work_status="${work_status}", modified_by="${user_id}", modified_dt="${datetime}" WHERE id="${id}"`;
+            db.query(sql, (err, lastId) => {
+                if (err) {
+                    console.log({ msg: err });
+                    data = { success: 0, message: JSON.stringify(err) };
+                } else {
+                    data = { success: 1, message: "Updated Successfully!!" };
+                }
+                resolve(data);
+            })
+        }
     })
 }
 
@@ -142,15 +182,20 @@ const DeleteTkt = (args) => {
     })
 }
 
-const SearchByDate = (args) => {
-    const { frm_dt, to_dt, user_id } = args;
-    var wht_con = user_id != '' && user_id > 0 ? `AND a.assign_engg = ${user_id}` : '';
+const SearchByDate = async (args) => {
+    const { frm_dt, to_dt, user_id, user_type, repo_type } = args;
+    var user = user_type != 'C' ? 'a.assign_engg' : 'a.client_id';
+    var wht_con = user_id != '' && user_id > 0 ? (user_type != 'T' ? `AND ${user} = ${user_id}` : '') : '';
+    var table_name = repo_type == 'A' ? await getTableNameByDate(frm_dt, to_dt) : 'td_support_log'
+
     var sql = `SELECT a.*, b.client_name, h.emp_name, i.tkt_status as tktStatus
-    FROM td_support_log a
+    FROM ${table_name} a
     JOIN md_client b ON a.client_id=b.id
     LEFT JOIN md_employee h ON a.assign_engg=h.emp_code
     LEFT JOIN md_tkt_status i ON a.tkt_status=i.id
-    WHERE date(a.log_in) >= "${frm_dt}" AND date(a.log_in) <= "${to_dt}" ${wht_con}`;
+    WHERE date(a.log_in) BETWEEN "${frm_dt}" AND "${to_dt}" ${wht_con}`;
+    console.log(sql);
+    
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
             if (err) {
@@ -163,9 +208,37 @@ const SearchByDate = (args) => {
     })
 }
 
+const getTableNameByDate = (frm_dt, to_dt) => {
+    var table_name = 'td_support_log'
+    var tableSql = `SELECT * FROM md_support_log_map_table WHERE start_dt <= '${frm_dt}' AND end_dt >= '${to_dt}'`;
+    return new Promise((resolve, reject) => {
+        db.query(tableSql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                if (result.length > 0) {
+                    if (result.length > 1) {
+                        table_name = ''
+                        for (let tab of result) {
+                            if (table_name != '')
+                                table_name += ' UNION ALL ';
+                            table_name += `(SELECT * FROM ${tab.table_name} WHERE date(log_in) BETWEEN '${frm_dt}' AND '${to_dt}')`;
+                        }
+                        table_name = `(${table_name})`;
+                    } else {
+                        table_name = result[0].table_name;
+                    }
+                }
+            }
+            resolve(table_name);
+        })
+    })
+}
+
 const SearchByTktNo = (args) => {
-    const { tkt_no, user_id } = args;
-    var wht_con = user_id != '' && user_id > 0 ? `AND a.assign_engg = ${user_id}` : '';
+    const { tkt_no, user_id, user_type } = args;
+    var user = user_type != 'C' ? 'a.assign_engg' : 'a.client_id';
+    var wht_con = user_id != '' && user_id > 0 ? `AND ${user} = ${user_id}` : '';
     var sql = `SELECT a.*, b.client_name, h.emp_name, i.tkt_status as tktStatus
     FROM td_support_log a
     JOIN md_client b ON a.client_id=b.id
@@ -177,6 +250,54 @@ const SearchByTktNo = (args) => {
             if (err) {
                 data = { success: 0, message: JSON.stringify(err) };
             } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+
+const SearchByDateClient = (args) => {
+    const { frm_dt, to_dt, user_id, user_type, client_id } = args;
+    var user = user_type != 'C' ? 'a.assign_engg' : 'a.client_id';
+    var wht_con = user_id != '' && user_id > 0 ? (user_type != 'T' ? `AND ${user} = ${user_id}` : '') : '';
+    var sql = `SELECT a.*, b.client_name, h.emp_name, i.tkt_status as tktStatus
+    FROM td_support_log a
+    JOIN md_client b ON a.client_id = b.id
+    LEFT JOIN md_employee h ON a.assign_engg = h.emp_code
+    LEFT JOIN md_tkt_status i ON a.tkt_status = i.id
+    WHERE date(a.log_in) >= "${frm_dt}" AND date(a.log_in) <= "${to_dt}" AND a.client_id=${client_id} ${wht_con} ORDER BY date(a.log_in) DESC`;
+    // console.log(sql);
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                // console.log(data);
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
+
+const SearchByDateEmp = (args) => {
+    const { frm_dt, to_dt, user_id, user_type, emp_id } = args;
+    var user = user_type != 'C' ? 'a.assign_engg' : 'a.client_id';
+    var wht_con = user_id != '' && user_id > 0 ? (user_type != 'T' ? `AND ${user} = ${user_id}` : '') : '';
+    var sql = `SELECT a.*, b.client_name, h.emp_name, i.tkt_status as tktStatus
+    FROM td_support_log a
+    JOIN md_client b ON a.client_id = b.id
+    LEFT JOIN md_employee h ON a.assign_engg = h.emp_code
+    LEFT JOIN md_tkt_status i ON a.tkt_status = i.id
+    WHERE date(a.log_in) >= "${frm_dt}" AND date(a.log_in) <= "${to_dt}" AND a.assign_engg=${emp_id} ${wht_con} ORDER BY date(a.log_in) DESC`;
+    // console.log(sql);
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                // console.log(data);
                 data = result;
             }
             resolve(data);
@@ -207,7 +328,7 @@ const CheckTktNo = (args) => {
 
 const GetSupportLogDone = (args) => {
     const { user_type, user_id } = args;
-    var wht_con = user_type != 'A' ? `AND a.assign_engg = ${user_id}` : '';
+    var wht_con = user_type != 'A' ? (user_type != 'M' ? `AND a.assign_engg = ${user_id}` : '') : '';
     var sql = `SELECT a.*, b.client_name, c.district_name, d.client_type, e.oprn_mode, b.working_hrs, b.amc_upto, b.rental_upto, 
     f.priority_mode priority, g.module_type module, h.emp_name, i.tkt_status as tktStatus
     FROM td_support_log a
@@ -218,7 +339,7 @@ const GetSupportLogDone = (args) => {
     JOIN md_priority_mode f ON a.priority_status=f.id
     JOIN md_module g ON a.tkt_module=g.id
     JOIN md_employee h ON a.assign_engg=h.emp_code
-	JOIN md_tkt_status i ON a.tkt_status=i.id WHERE a.work_status > 0 ${wht_con} ORDER BY a.id`;
+	JOIN md_tkt_status i ON a.tkt_status=i.id WHERE a.work_status != '0' AND DATE(a.log_in) = DATE(CURRENT_DATE()) ${wht_con} ORDER BY a.id`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
             // console.log(result);
@@ -234,4 +355,4 @@ const GetSupportLogDone = (args) => {
     })
 }
 
-module.exports = { GetTktNo, SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt, DeleteTkt, SearchByDate, SearchByTktNo, CheckTktNo, GetSupportLogDone };
+module.exports = { GetTktNo, SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt, DeleteTkt, SearchByDate, SearchByTktNo, CheckTktNo, GetSupportLogDone, UpdateTktStatus, UpdateAssignEng, SearchByDateClient, SearchByDateEmp };

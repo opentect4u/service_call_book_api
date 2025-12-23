@@ -3,12 +3,12 @@ var data = {};
 
 const OpenCloseTkt = (args) => {
     const { user_type, user_id } = args;
-    var whr_cls = user_type == 'E' ? `AND assign_engg = "${user_id}"` : '';
+    var whr_cls = user_type == 'E' || user_type == 'W' ? `AND assign_engg = "${user_id}"` : '';
     var sql = `SELECT SUM(opened) opened, SUM(closed) closed
                 FROM
-                (SELECT COUNT(id) opened, 0 closed FROM td_support_log WHERE work_status > '0' AND DATE(log_in) = CURRENT_DATE() ${whr_cls}
+                (SELECT COUNT(id) opened, 0 closed FROM td_support_log WHERE work_status = '0' AND DATE(log_in) = CURRENT_DATE() ${whr_cls}
                 UNION
-                SELECT 0 opened, COUNT(id) closed FROM td_support_log WHERE work_status = '0' AND DATE(log_in) = CURRENT_DATE() ${whr_cls}
+                SELECT 0 opened, COUNT(id) closed FROM td_support_log WHERE work_status > '0' AND DATE(log_in) = CURRENT_DATE() ${whr_cls}
                 )a`
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
@@ -24,8 +24,8 @@ const OpenCloseTkt = (args) => {
 
 const CloseTkt = (args) => {
     const { user_type, user_id } = args;
-    var whr_cls = user_type == 'E' ? `AND assign_engg = "${user_id}"` : '';
-    var whr = user_type == 'E' ? `WHERE assign_engg = "${user_id}"` : '';
+    var whr_cls = user_type == 'E' || user_type == 'W' ? `AND assign_engg = "${user_id}"` : '';
+    var whr = user_type == 'E' || user_type == 'W' ? `WHERE assign_engg = "${user_id}"` : '';
     var sql = `SELECT SUM(today) today, SUM(yesterday) yesterday, SUM(this_month) this_month, SUM(last_month) last_month, SUM(this_year) this_year, SUM(lifetime) lifetime
                 FROM
                 (SELECT COUNT(tkt_no) today, 0 yesterday, 0 this_month, 0 last_month, 0 this_year, 0 lifetime FROM td_support_log
@@ -43,7 +43,7 @@ const CloseTkt = (args) => {
                 SELECT 0 today, 0 yesterday, 0 this_month, 0 last_month, COUNT(tkt_no) this_year, 0 lifetime FROM td_support_log
                 WHERE YEAR(log_in) = YEAR(CURRENT_DATE()) ${whr_cls}
                 UNION
-                SELECT 0 today, 0 yesterday, 0 this_month, 0 last_month, 0 this_year, COUNT(tkt_no) lifetime FROM td_support_log ${whr_cls}
+                SELECT 0 today, 0 yesterday, 0 this_month, 0 last_month, 0 this_year, COUNT(tkt_no) lifetime FROM td_support_log ${whr}
                 ) a`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
@@ -59,7 +59,7 @@ const CloseTkt = (args) => {
 
 const OpenTktByStatus = (args) => {
     const { user_type, user_id } = args;
-    var whr_cls = user_type == 'E' ? `AND assign_engg = "${user_id}"` : '';
+    var whr_cls = user_type == 'E' || user_type == 'W' ? `AND assign_engg = "${user_id}"` : '';
     var sql = `SELECT a.tkt_status,count(b.tkt_status) as status
                 from md_tkt_status a,td_support_log b
                 where a.id = b.tkt_status
@@ -80,7 +80,7 @@ const OpenTktByStatus = (args) => {
 
 const WorkDone = (args) => {
     const { user_type, user_id } = args;
-    var whr_cls = user_type == 'E' ? `AND a.assign_engg = "${user_id}"` : '';
+    var whr_cls = user_type == 'E' || user_type == 'W' ? `AND a.assign_engg = "${user_id}"` : '';
     var sql = `SELECT COUNT(a.tkt_no) as done, b.emp_name
                 FROM td_support_log a
                 JOIN md_employee b ON a.assign_engg=b.emp_code
@@ -102,20 +102,20 @@ const WorkDone = (args) => {
 
 const TotalTktByDate = (args) => {
     const { user_type, user_id } = args;
-    var whr_cls = user_type == 'E' ? `AND assign_engg = "${user_id}"` : '';
+    var whr_cls = user_type == 'E' || user_type == 'W' ? `AND assign_engg = "${user_id}"` : '';
     var sql = `SELECT no_tkt, date_name
                 FROM
-                (	SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-6, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-6) ${whr_cls}
+                (	SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()- INTERVAL 6 DAY, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()- INTERVAL 6 DAY) ${whr_cls}
                     UNION
-                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-5, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-5) ${whr_cls}
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()- INTERVAL 5 DAY, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()- INTERVAL 5 DAY) ${whr_cls}
                     UNION
-                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-4, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-4) ${whr_cls}
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()- INTERVAL 4 DAY, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()- INTERVAL 4 DAY) ${whr_cls}
                     UNION
-                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-3, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-3) ${whr_cls}
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()- INTERVAL 3 DAY, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()- INTERVAL 3 DAY) ${whr_cls}
                     UNION
-                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()-2, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()-2) ${whr_cls}
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE()- INTERVAL 2 DAY, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()- INTERVAL 2 DAY) ${whr_cls}
                     UNION
-                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE() - 1, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE() - 1) ${whr_cls}
+                    SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE() - INTERVAL 1 DAY, "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE() - INTERVAL 1 DAY) ${whr_cls}
                     UNION
                     SELECT COUNT(id) as no_tkt, date_format(CURRENT_DATE(), "%d/%m") as date_name FROM td_support_log WHERE DATE(log_in) = DATE(CURRENT_DATE()) ${whr_cls}
                 )a`;
@@ -133,7 +133,7 @@ const TotalTktByDate = (args) => {
 
 const TotalTktByClint = (args) => {
     const { user_type, user_id } = args;
-    var whr_cls = user_type == 'E' ? `AND a.assign_engg = "${user_id}"` : '';
+    var whr_cls = user_type == 'E' || user_type == 'W' ? `AND a.assign_engg = "${user_id}"` : '';
     var sql = `SELECT COUNT(a.tkt_no) total_tkt, c.client_type
                 FROM td_support_log a
                 JOIN md_client b ON a.client_id=b.id

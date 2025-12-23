@@ -1,10 +1,10 @@
 const { GraphQLString, GraphQLID, GraphQLInt } = require("graphql");
-// const { GraphQLUpload } = require('graphql-upload');
+const { GraphQLUpload } = require('graphql-upload');
 const bcrypt = require('bcrypt');
 const dateFormat = require('dateformat');
 const { UserType } = require("../TypeDefs/User");
 const db = require('../db');
-const { InsertUser, UpdateUserType, UpdateUserStatus, UpdateApprovalFlag, ForgotPassword, ResetPassword, UpdateProfile, UpdateLoginStatus } = require('../Modules/user_module');
+const { InsertUser, UpdateUserType, UpdateUserStatus, UpdateApprovalFlag, ForgotPassword, ResetPassword, UpdateProfile, UpdateLoginStatus, UploadFile, RemoveImage } = require('../Modules/user_module');
 const { MessageType } = require('../TypeDefs/Messages');
 
 const create_user = {
@@ -112,18 +112,6 @@ const update_login_status = {
     }
 }
 
-// const upload_file = {
-//     type: MessageType,
-//     args: { image: { type: GraphQLUpload } },
-//     async resolve(parent, { image }) {
-//         const { filename, mimetype, createReadStream } = await image;
-//         const stream = createReadStream();
-//         var data = { message: filename, success: 1 };
-//         console.log({ filename, mimetype, stream });
-//         return data;
-//     }
-// }
-
 const update_user = {
     type: UserType,
     args: { id: { type: GraphQLID }, password: { type: GraphQLString } },
@@ -157,4 +145,29 @@ const delete_user = {
     }
 }
 
-module.exports = { create_user, delete_user, update_user, update_user_type, update_user_status, update_approve_status, forgot_password, reset_password, update_profile, update_login_status };
+const upload_file = {
+    type: MessageType,
+    args: {
+        user_id: { type: GraphQLString },
+        image: { type: GraphQLUpload }
+    },
+    async resolve(parent, args) {
+        var data = await UploadFile(args);
+        // const { filename, mimetype, createReadStream } = await image;
+        // const stream = createReadStream();
+        // var data = { message: filename, success: 1 };
+        // console.log({ filename, mimetype, stream });
+        return data;
+    }
+}
+
+const remove_image = {
+    type: MessageType,
+    args: { user_id: { type: GraphQLString } },
+    async resolve(parent, args) {
+        var result = await RemoveImage(args);
+        return result;
+    }
+}
+
+module.exports = { create_user, delete_user, update_user, update_user_type, update_user_status, update_approve_status, forgot_password, reset_password, update_profile, update_login_status, upload_file, remove_image };

@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
 const dateFormat = require('dateformat');
 const nodemailer = require('nodemailer');
-// const fs = require('fs');
 const Buffer = require('buffer').Buffer;
 const db = require('../db');
+const path = require('path');
+const fs = require('fs');
 let data = {};
 
 const insert = (args) => {
@@ -12,15 +13,15 @@ const insert = (args) => {
         const pass = bcrypt.hashSync(password, 10);
         var datetime = dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss");
         var approval_flag = user_type != 'C' ? 'U' : 'A';
-        let sql = `INSERT INTO md_users (user_id, password, code_no, user_type, approval_flag, user_status, created_by, created_dt) VALUES ("${user_id}", "${pass}", "${code_no}", "${user_type}", "${approval_flag}", "A", "${code_no}", "${datetime}")`;
+        let sql = `INSERT INTO md_users (user_id, password, code_no, user_type, approval_flag, user_status, created_by, created_dt) VALUES ("${user_id}", "${pass}", "${code_no}", "${user_type}", "A", "A", "${code_no}", "${datetime}")`;
         db.query(sql, async (err, lastId) => {
             if (err) {
                 console.log({ msg: err });
                 //data = { success: 0, message: 'Data Not Inserted' };
                 data = { success: 0, message: JSON.stringify(err) };
             } else {
-                await send_email(user_id);
-                data = { success: 1, message: 'Please check your mail to activate your account' };
+                //await send_email(user_id);
+                data = { success: 1, message: 'User created successfully.' };
             }
             resolve(data);
         })
@@ -60,7 +61,16 @@ const UserLogin = (args) => {
             }
             if (result.length > 0) {
                 if (await bcrypt.compare(password, result[0].password)) {
-                    await UpdateLoginStatus(args, status);
+                    var day = dateFormat(new Date(), "dddd"), dayActiveFlag = 'N';
+                    if (day == 'Sunday') {
+                        dayActiveFlag = 'N';
+                        result[0]['activeDayFlag'] = dayActiveFlag;
+                    } else {
+                        var chk_dt = await checkActiveDate();
+                        dayActiveFlag = chk_dt ? 'N' : 'Y';
+                        result[0]['activeDayFlag'] = dayActiveFlag;
+                    }
+					await UpdateLoginStatus(args, status);
                     data = { success: 1, message: JSON.stringify(result) };
                 } else {
                     data = { success: 0, message: 'Please Check Your User ID Or Password' }
@@ -72,6 +82,24 @@ const UserLogin = (args) => {
             resolve(data);
         });
     })
+}
+
+const checkActiveDate = () => { 
+    return new Promise((resolve, reject) => { 
+        var sql = `SELECT count(id) chk_dt FROM md_holiday WHERE evnt_date = "${dateFormat(new Date(), "yyyy-mm-dd")}"`;
+        var data = false
+        db.query(sql, (err, result) => { 
+            if (err) { 
+                console.log(err);
+                data = false;
+            } else if(result[0].chk_dt > 0) { 
+                data = true;
+            } else { 
+                data = false;
+            }
+            resolve(data);
+        });
+    });
 }
 
 const UpdateLoginStatus = (args, status) => {
@@ -114,7 +142,7 @@ const CheckUser = (args) => {
 const GetUserDetails = (args) => {
     const { tag } = args;
     var tag_val = tag == '1' ? 'A' : 'D';
-    var active = tag == '1' ? `WHERE a.user_status = "${tag_val}"` : (tag == '0' ? `WHERE a.user_status = "${tag_val}"` : '');
+    var active = tag == '1' ? `WHERE a.user_status = "${tag_val}" AND a.user_type != 'C'` : (tag == '0' ? `WHERE a.user_status = "${tag_val}" AND a.user_type != 'C'` : '');
     var sql = `SELECT a.*, b.emp_name as user_name FROM md_users a JOIN md_employee b ON a.code_no = b.emp_code ${active}`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
@@ -184,13 +212,13 @@ const send_email = async (email_id) => {
         port: 25,
         secure: false,
         auth: {
-            user: 'support@synergicportal.in',
+            user: 'admin@synergicportal.in',
             pass: 'Support!sSs#2021'
         },
         tls: { rejectUnauthorized: false }
     });
     var mailOptions = {
-        from: 'support@synergicportal.in',
+        from: 'admin@synergicportal.in',
         to: email_id,
         subject: 'SynergicPortal',
         html: '<!doctype html>'
@@ -279,52 +307,52 @@ const ForgotPassword = (args) => {
 
                 // FOR SERVER
 
-                var transporter = nodemailer.createTransport({
-                    host: 'webmail.synergicportal.in',
-                    port: 25,
-                    secure: false,
-                    auth: {
-                        user: 'support@synergicportal.in',
-                        pass: 'Support!sSs#2021'
-                    },
-                    tls: { rejectUnauthorized: false }
-                });
-                var mailOptions = {
-                    from: 'support@synergicportal.in',
-                    to: email_id,
-                    subject: 'SynergicPortal',
-                    html: '<!doctype html>'
-                        + '<html>'
-                        + '<head>'
-                        + '<meta charset="utf-8">'
-                        + '<title>HomeworkHelp</title>'
-                        + '<style type="text/css">body{font - size: 14px; color: #494949; font-size: 15px; margin: 0; padding: 0;}</style>'
-                        + '</head>'
-                        + '<body>'
-                        + '<div style="max-width: 830px; margin: 0 auto; padding: 0 15px;">'
-                        + '<table width="100%" border="0" cellspacing="0" cellpadding="0">'
-                        + '<tbody>'
-                        + '<tr>'
-                        + '<td align="left" valign="top" style="text-align: center; padding: 14px 0; border-bottom: #ef3e36 solid 3px;"><img src="https://support.synergicportal.in/assets/Login_assets/images/logo.png" width="171" height="43" alt="" /></td>'
-                        + '</tr>'
-                        + '<tr>'
-                        + '<td align="left" valign="top" style="padding: 25px 15px 5px 15px; font-family: Arial; font-size: 15px; line-height: 25px;">'
-                        + '<center><p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;"><span style="color: #2fd025;">Your Password Reseted Successsfully..</span></p></center>'
-                        + '<p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;">Please try to login with new password <b><i>"password"</i></b>.</p>'
-                        + '<p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;"><b><small><i><span style="color: #d02525; font-size: 11px;">PLEASE RESET YOUR PASSWORD AFTER LOGIN, FOR SECURITY PURPOSE.</span></i></small></b></p>'
-                        + '</td>'
-                        + '</tr>'
-                        + '</tbody>'
-                        + '</table>'
-                        + '</div>'
-                        + '</body>'
-                        + '</html>'
-                };
-                await transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) console.log(error);
-                    console.log('Email sent: ' + info.response);
-                })
-                data = { success: 1, message: 'Please Check Your Email For New Password' };
+                 // var transporter = nodemailer.createTransport({
+                //     host: 'webmail.synergicportal.in',
+                //     port: 25,
+                //     secure: false,
+                //     auth: {
+                //         user: 'admin@synergicportal.in',
+                //         pass: 'Support!sSs#2021'
+                //     },
+                //     tls: { rejectUnauthorized: false }
+                // });
+                // var mailOptions = {
+                //     from: 'admin@synergicportal.in',
+                //     to: email_id,
+                //     subject: 'SynergicPortal',
+                //     html: '<!doctype html>'
+                //         + '<html>'
+                //         + '<head>'
+                //         + '<meta charset="utf-8">'
+                //         + '<title>HomeworkHelp</title>'
+                //         + '<style type="text/css">body{font - size: 14px; color: #494949; font-size: 15px; margin: 0; padding: 0;}</style>'
+                //         + '</head>'
+                //         + '<body>'
+                //         + '<div style="max-width: 830px; margin: 0 auto; padding: 0 15px;">'
+                //         + '<table width="100%" border="0" cellspacing="0" cellpadding="0">'
+                //         + '<tbody>'
+                //         + '<tr>'
+                //         + '<td align="left" valign="top" style="text-align: center; padding: 14px 0; border-bottom: #ef3e36 solid 3px;"><img src="https://support.synergicportal.in/assets/Login_assets/images/logo.png" width="171" height="43" alt="" /></td>'
+                //         + '</tr>'
+                //         + '<tr>'
+                //         + '<td align="left" valign="top" style="padding: 25px 15px 5px 15px; font-family: Arial; font-size: 15px; line-height: 25px;">'
+                //         + '<center><p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;"><span style="color: #2fd025;">Your Password Reseted Successsfully..</span></p></center>'
+                //         + '<p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;">Please try to login with new password <b><i>"password"</i></b>.</p>'
+                //         + '<p style=" padding: 0 0 25px 0; margin: 0; font-family: Arial; font-size: 15px; color: #494949;"><b><small><i><span style="color: #d02525; font-size: 11px;">PLEASE RESET YOUR PASSWORD AFTER LOGIN, FOR SECURITY PURPOSE.</span></i></small></b></p>'
+                //         + '</td>'
+                //         + '</tr>'
+                //         + '</tbody>'
+                //         + '</table>'
+                //         + '</div>'
+                //         + '</body>'
+                //         + '</html>'
+                // };
+                // await transporter.sendMail(mailOptions, (error, info) => {
+                //     if (error) console.log(error);
+                //     console.log('Email sent: ' + info.response);
+                // })
+                data = { success: 1, message: 'Please try to login with new password as "password"' };
             }
             resolve(data);
         })
@@ -352,7 +380,7 @@ const GetProfileDtls = (args) => {
     const { user_email, user_type } = args;
     var join_cls = user_type != 'C' ? 'JOIN md_employee b ON a.code_no=b.emp_code' : 'JOIN md_client b ON a.code_no=b.id';
     var select = user_type != 'C' ? 'b.id, b.emp_name, b.phone_no, b.email, b.emp_designation, b.emp_code' : 'b.id, b.district_id, b.client_name, b.oprn_mode_id, b.client_type_id, b.client_addr, b.phone_no, b.email, b.working_hrs, b.amc_upto, b.rental_upto';
-    var sql = `SELECT a.user_type, ${select} FROM md_users a ${join_cls} WHERE a.user_id = "${user_email}"`;
+    var sql = `SELECT a.user_type, a.image, ${select} FROM md_users a ${join_cls} WHERE a.user_id = "${user_email}"`;
     return new Promise((resolve, reject) => {
         db.query(sql, (err, result) => {
             if (err) {
@@ -384,11 +412,66 @@ const UpdateProfile = (args) => {
     })
 }
 
-// const UploadFile = async ({ image }) => {
-//     const { filename, mimetype, createReadStream } = await image;
-//     const stream = createReadStream();
-    
-//     // require('../../')
-// }
+// FILE
 
-module.exports = { InsertUser, UserLogin, CheckUser, GetUserDetails, UpdateUserType, UpdateUserStatus, GetUserDetailsById, UpdateApprovalFlag, CheckEmail, ForgotPassword, ResetPassword, GetProfileDtls, UpdateProfile, UpdateLoginStatus };
+const storeFS = ({ stream, file_name }) => {
+    const uploadDir = '../../assets/upload';
+    const up_path = path.join(__dirname, `../../assets/upload/${file_name}`);
+    console.log(up_path);
+    return new Promise((resolve, reject) =>
+        stream
+            .on('error', error => {
+                if (stream.truncated)
+                    // delete the truncated file
+                    fs.unlinkSync(up_path);
+                reject(error);
+            })
+            .pipe(fs.createWriteStream(up_path))
+            .on('error', error => reject(error))
+            .on('finish', () => resolve({ up_path }))
+    );
+}
+
+const UploadFile = async (args) => {
+    const { user_id } = args;
+    const { filename, mimetype, createReadStream } = await args.image;
+    var arr = filename.split('.');
+    var timestamp = new Date().getTime();
+    let file_name = `${arr[0]}_${timestamp}.${arr[1]}`;
+    console.log(file_name);
+    const stream = createReadStream();
+
+    const pathObj = await storeFS({ stream, file_name });
+    const fileLocation = pathObj.up_path;
+    console.log({ fileLocation });
+    return new Promise((resolve, reject) => {
+        var sql = `UPDATE md_users SET image = "${file_name}" WHERE user_id = "${user_id}"`;
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: file_name };
+            }
+            resolve(data)
+        })
+    })
+    // var data = { message: filename, success: 1 };
+    // console.log({ filename, mimetype, stream });
+}
+
+const RemoveImage = (args) => {
+    const { user_id } = args;
+    var sql = `UPDATE md_users SET image = NULL WHERE user_id = "${user_id}"`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, lastId) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = { success: 1, message: 'Updated Successfully' };
+            }
+            resolve(data)
+        })
+    })
+}
+
+module.exports = { InsertUser, UserLogin, CheckUser, GetUserDetails, UpdateUserType, UpdateUserStatus, GetUserDetailsById, UpdateApprovalFlag, CheckEmail, ForgotPassword, ResetPassword, GetProfileDtls, UpdateProfile, UpdateLoginStatus, UploadFile, RemoveImage };

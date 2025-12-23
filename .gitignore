@@ -1,0 +1,10 @@
+assets/*
+node_modules
+.user.ini
+*.html
+package-lock.json
+*.zip
+uploads/*
+.env
+web.config
+package-lock.json

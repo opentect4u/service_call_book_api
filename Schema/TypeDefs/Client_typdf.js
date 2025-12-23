@@ -18,6 +18,7 @@ const ClientTypeDf = new GraphQLObjectType({
         amc_upto: { type: GraphQLString },
         rental_upto: { type: GraphQLString },
         support_status: { type: GraphQLString },
+		schema_name: { type: GraphQLString },
         remarks: { type: GraphQLString },
 		client_type: { type: GraphQLString },
 		district_name: { type: GraphQLString },
@@ -33,4 +34,14 @@ const DistrictType = new GraphQLObjectType({
     })
 })
 
-module.exports = { ClientTypeDf, DistrictType }
+const ClientPrivilegeTypeDf = new GraphQLObjectType({
+    name: "client_privilege_df",
+    fields: () => ({
+        id: { type: GraphQLID },
+        client_id: { type: GraphQLString },
+        tkt_can_entry: { type: GraphQLString },
+        pending_close: { type: GraphQLString },
+    })
+})
+
+module.exports = { ClientTypeDf, DistrictType, ClientPrivilegeTypeDf }

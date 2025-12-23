@@ -1,17 +1,12 @@
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
 
 const db = mysql.createPool({
-    // connectionLimit: 10,
-    // host: 'localhost',
-    // user: 'root',
-    // password: '',
-    // database: 'support_log'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     connectionLimit: 10,
-    host: 'localhost',
-    user: 'ServiceCallBook',
-    password: 'ServiceCallBook@123',
-    database: 'service_call_book'
 });
 
 db.getConnection((err, connection) => {
