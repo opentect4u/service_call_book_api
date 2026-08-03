@@ -355,4 +355,26 @@ const GetSupportLogDone = (args) => {
     })
 }
 
-module.exports = { GetTktNo, SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt, DeleteTkt, SearchByDate, SearchByTktNo, CheckTktNo, GetSupportLogDone, UpdateTktStatus, UpdateAssignEng, SearchByDateClient, SearchByDateEmp };
+const GetSupportRatingData = (args) => {
+    const { user_type, user_id, frm_dt, to_dt} = args;
+    var wht_con = user_type != 'A' ? (user_type != 'M' ? `AND a.assign_engg = ${user_id}` : '') : '';
+    var sql = `SELECT a.id, a.tkt_no, c.client_name, a.log_in, a.user_name, a.call_attend, a.delivery, b.emp_name, a.assigned_by, a.prob_reported, a.closed_by_client_datetime, a.client_closing_remarks, a.client_closed_rating
+FROM td_support_log a, md_employee b, md_client c
+WHERE a.assign_engg=b.emp_code AND a.client_id=c.id AND work_status >0 AND a.closed_by_client = 'Y' AND date(a.log_in) >= "${frm_dt}" AND date(a.log_in) <= "${to_dt}" AND a.closed_by_client_datetime IS NOT NULL AND a.client_closing_remarks IS NOT NULL AND a.client_closed_rating IS NOT NULL ${wht_con}
+ORDER BY a.log_in`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            // console.log(result);
+            if (err) {
+                console.log({ msg: err });
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+                //data = { success: 0, message: sql };
+            }
+            resolve(data);
+        })
+    })
+}
+
+module.exports = { GetTktNo, SupLogEntry, SupLogGet, UpdateRaiseTkt, UpdateAssignTkt, UpdateDeliverTkt, DeleteTkt, SearchByDate, SearchByTktNo, CheckTktNo, GetSupportLogDone, UpdateTktStatus, UpdateAssignEng, SearchByDateClient, SearchByDateEmp, GetSupportRatingData };

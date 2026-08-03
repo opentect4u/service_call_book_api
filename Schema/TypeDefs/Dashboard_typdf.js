@@ -71,4 +71,16 @@ const TotalTktByClientType = new GraphQLObjectType({
     })
 })
 
-module.exports = { openedClosedTktType, CloseTktType, CloseTktByStatusType, WorkDoneType, TotalTktByDateType, TotalTktByClientType };
+const TotalRatingForEmployeeType = new GraphQLObjectType({
+    name: 'total_rating_for_employee',
+    fields: () => ({
+        emp_name: { type: GraphQLString },
+        emp_code: { type: GraphQLInt },
+        tot_exc: { type: GraphQLInt },
+        tot_gd: { type: GraphQLInt },
+        tot_fr: { type: GraphQLInt },
+        tot_pr: { type: GraphQLInt }
+    })
+})
+
+module.exports = { openedClosedTktType, CloseTktType, CloseTktByStatusType, WorkDoneType, TotalTktByDateType, TotalTktByClientType, TotalRatingForEmployeeType };

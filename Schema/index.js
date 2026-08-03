@@ -8,10 +8,10 @@ const { get_emp, get_eng_list } = require("./Queries/Emp_master_query");
 const { get_client, get_district, get_client_privilege } = require("./Queries/Client_query");
 const { create_client, update_client, delete_client } = require("./Mutations/Client_mutation");
 const { create_tkt, update_assign_tkt, update_deliver_tkt, update_raise_tkt, delete_tkt, update_tkt_status, update_assign_eng } = require("./Mutations/Support_log_mutation");
-const { get_supp_log, search_by_date, search_by_tkt_no, check_tkt_no, get_supp_log_done, search_by_date_client, search_by_date_employee } = require("./Queries/Support_log_query");
+const { get_supp_log, search_by_date, search_by_tkt_no, check_tkt_no, get_supp_log_done, search_by_date_client, search_by_date_employee, get_supp_rating } = require("./Queries/Support_log_query");
 const { client_get_tkt } = require("./Queries/Client_support_query");
 const { client_tkt_save, client_tkt_up_file, client_tkt_update, client_close_tkt } = require("./Mutations/Client_support_mutation");
-const { open_close_tkt, close_tkt, open_tkt_by_status, work_done, total_tkt_by_date, total_tkt_by_client } = require("./Queries/Dashboard_query");
+const { open_close_tkt, close_tkt, open_tkt_by_status, work_done, total_tkt_by_date, total_tkt_by_client, total_rating_for_employee } = require("./Queries/Dashboard_query");
 const { client_get_tkt_dashboard, client_monthly_support, client_open_close_tkt, client_last_tkt, client_closed_tkt } = require("./Queries/Client_dashboard_query");
 
 const { get_holiday_list } = require("./Queries/Holiday_query");
@@ -44,6 +44,7 @@ const UserLogin = new GraphQLObjectType({
         searchByTktNo: search_by_tkt_no,
         searchByDateClient: search_by_date_client,
         searchByDateEmp: search_by_date_employee,
+        getSupportRating: get_supp_rating,
         clientGetTkt: client_get_tkt,
         checkTktNo: check_tkt_no,
         getProfileDtls: get_profile_dtls,
@@ -54,6 +55,7 @@ const UserLogin = new GraphQLObjectType({
         totalTktByDate: total_tkt_by_date,
         getSuppLogDone: get_supp_log_done,
         totalTktByClient: total_tkt_by_client,
+        totalRatingForEmployee: total_rating_for_employee,
         clientGetTktDashboard: client_get_tkt_dashboard,
         clientMonthlySupport: client_monthly_support,
         clientOpenCloseTkt: client_open_close_tkt,

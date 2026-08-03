@@ -1,6 +1,6 @@
 const { GraphQLList, GraphQLString, GraphQLInt } = require("graphql");
-const { OpenCloseTkt, CloseTkt, WorkDone, TotalTktByDate, OpenTktByStatus, TotalTktByClint } = require("../Modules/dashboard_module");
-const { openedClosedTktType, CloseTktType, CloseTktByStatusType, WorkDoneType, TotalTktByDateType, TotalTktByClientType } = require("../TypeDefs/Dashboard_typdf");
+const { OpenCloseTkt, CloseTkt, WorkDone, TotalTktByDate, OpenTktByStatus, TotalTktByClint, TotalRatingForEmployee } = require("../Modules/dashboard_module");
+const { openedClosedTktType, CloseTktType, CloseTktByStatusType, WorkDoneType, TotalTktByDateType, TotalTktByClientType, TotalRatingForEmployeeType } = require("../TypeDefs/Dashboard_typdf");
 
 const open_close_tkt = {
     type: new GraphQLList(openedClosedTktType),
@@ -74,4 +74,16 @@ const total_tkt_by_client = {
     }
 }
 
-module.exports = { open_close_tkt, close_tkt, open_tkt_by_status, work_done, total_tkt_by_date, total_tkt_by_client };
+const total_rating_for_employee = {
+    type: new GraphQLList(TotalRatingForEmployeeType),
+    args: {
+        user_type: { type: GraphQLString },
+        user_id: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = TotalRatingForEmployee(args);
+        return result;
+    }
+}
+
+module.exports = { open_close_tkt, close_tkt, open_tkt_by_status, work_done, total_tkt_by_date, total_tkt_by_client, total_rating_for_employee };

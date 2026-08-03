@@ -46,4 +46,23 @@ const SupportLogTypDf = new GraphQLObjectType({
     })
 })
 
-module.exports = { SupportLogTypDf };
+const SupportLogRatingTypDf = new GraphQLObjectType({
+    name: 'support_log_rating',
+    fields: () => ({
+        id: { type: GraphQLID },
+        tkt_no: { type: GraphQLString },
+        client_name: { type: GraphQLString },
+        log_in: { type: GraphQLString },
+        user_name: { type: GraphQLString },
+        call_attend: { type: GraphQLString },
+        delivery: { type: GraphQLString },
+        emp_name: { type: GraphQLString },
+        assigned_by: { type: GraphQLString },
+        prob_reported: { type: GraphQLString },
+        closed_by_client_datetime: { type: GraphQLString },
+        client_closing_remarks: { type: GraphQLString },
+        client_closed_rating: { type: GraphQLString }
+    })
+})
+
+module.exports = { SupportLogTypDf, SupportLogRatingTypDf };

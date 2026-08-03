@@ -153,8 +153,47 @@ const TotalTktByClint = (args) => {
     })
 }
 
+const TotalRatingForEmployee = (args) => {
+    const { user_type, user_id } = args;
+    var whr_cls = user_type == 'E' || user_type == 'W' ? `WHERE emp_code = "${user_id}"` : '';
+    var sql = `select emp_name, emp_code, sum(tot_exc) tot_exc, sum(tot_gd) tot_gd, sum(tot_fr) tot_fr, sum(tot_pr) tot_pr
+from(
+select a.assign_engg emp_code, b.emp_name, count(a.id) tot_exc, 0 tot_gd, 0 tot_fr, 0 tot_pr
+from td_support_log a, md_employee b
+where a.assign_engg=b.emp_code and work_status >0 and closed_by_client = 'Y' and client_closed_rating = 'E'
+group by a.assign_engg, b.emp_name
+union
+select a.assign_engg emp_code, b.emp_name, 0 tot_exc, COUNT(a.id) tot_gd, 0 tot_fr, 0 tot_pr
+from td_support_log a, md_employee b
+where a.assign_engg=b.emp_code and work_status >0 and closed_by_client = 'Y' and client_closed_rating = 'G'
+group by a.assign_engg, b.emp_name
+UNION
+SELECT a.assign_engg emp_code, b.emp_name, 0 tot_exc, 0 tot_gd, COUNT(a.id) tot_fr, 0 tot_pr
+FROM td_support_log a, md_employee b
+WHERE a.assign_engg=b.emp_code AND work_status >0 AND closed_by_client = 'Y' AND client_closed_rating = 'F'
+GROUP BY a.assign_engg, b.emp_name
+UNION
+SELECT a.assign_engg emp_code, b.emp_name, 0 tot_exc, 0 tot_gd, 0 tot_fr, COUNT(a.id) tot_pr
+FROM td_support_log a, md_employee b
+WHERE a.assign_engg=b.emp_code AND work_status >0 AND closed_by_client = 'Y' AND client_closed_rating = 'P'
+GROUP BY a.assign_engg, b.emp_name
+) a 
+${whr_cls}
+group by emp_name, emp_code`;
+    return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+            if (err) {
+                data = { success: 0, message: JSON.stringify(err) };
+            } else {
+                data = result;
+            }
+            resolve(data);
+        })
+    })
+}
 
-module.exports = { OpenCloseTkt, CloseTkt, OpenTktByStatus, WorkDone, TotalTktByDate, TotalTktByClint };
+
+module.exports = { OpenCloseTkt, CloseTkt, OpenTktByStatus, WorkDone, TotalTktByDate, TotalTktByClint, TotalRatingForEmployee };
 
 
 

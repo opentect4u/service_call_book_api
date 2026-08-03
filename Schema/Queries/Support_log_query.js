@@ -1,7 +1,7 @@
 const { GraphQLList, GraphQLString, GraphQLInt } = require("graphql");
-const { SupLogGet, SearchByDate, SearchByTktNo, CheckTktNo, GetSupportLogDone, SearchByDateClient, SearchByDateEmp } = require("../Modules/support_log_module");
+const { SupLogGet, SearchByDate, SearchByTktNo, CheckTktNo, GetSupportLogDone, SearchByDateClient, SearchByDateEmp, GetSupportRatingData } = require("../Modules/support_log_module");
 const { MessageType } = require("../TypeDefs/Messages");
-const { SupportLogTypDf } = require("../TypeDefs/support_log_typdf");
+const { SupportLogTypDf, SupportLogRatingTypDf } = require("../TypeDefs/support_log_typdf");
 
 
 const get_supp_log = {
@@ -99,4 +99,18 @@ const get_supp_log_done = {
     }
 }
 
-module.exports = { get_supp_log, search_by_date, search_by_tkt_no, check_tkt_no, get_supp_log_done, search_by_date_client, search_by_date_employee };
+const get_supp_rating = {
+    type: new GraphQLList(SupportLogRatingTypDf),
+    args: {
+        frm_dt: { type: GraphQLString },
+        to_dt: { type: GraphQLString },
+        user_type: { type: GraphQLString },
+        user_id: { type: GraphQLString }
+    },
+    async resolve(parent, args) {
+        var result = await GetSupportRatingData(args);
+        return result;
+    }
+}
+
+module.exports = { get_supp_log, search_by_date, search_by_tkt_no, check_tkt_no, get_supp_log_done, search_by_date_client, search_by_date_employee, get_supp_rating };
